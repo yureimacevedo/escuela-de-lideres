@@ -913,45 +913,90 @@ function PagMisSesiones(p){
 function DetalleSesionLider(p){
   var u=p.usuario;
   var ss=_useState(null),sesion=ss[0],setSesion=ss[1];
-  var st=_useState("lectura"),tab=st[0],setTab=st[1];
   var sr=_useState({}),resps=sr[0],setResps=sr[1];
   var si=_useState(null),rdocId=si[0],setRdocId=si[1];
   var sb=_useState(false),busy=sb[0],setBusy=sb[1];
   var so=_useState(""),okMsg=so[0],setOkMsg=so[1];
+
   _useEffect(function(){
     db.collection("el_sesiones").doc(p.sesionId).get().then(function(d){if(d.exists)setSesion(Object.assign({id:d.id},d.data()));});
-    db.collection("el_respuestas").where("sesionId","==",p.sesionId).where("liderUid","==",u.uid).get().then(function(snap){if(!snap.empty){setResps(snap.docs[0].data().respuestas||{});setRdocId(snap.docs[0].id);}});
+    db.collection("el_respuestas").where("sesionId","==",p.sesionId).where("liderUid","==",u.uid).get().then(function(snap){
+      if(!snap.empty){setResps(snap.docs[0].data().respuestas||{});setRdocId(snap.docs[0].id);}
+    });
   },[p.sesionId]);
+
   function guardar(){
     setBusy(true);
     var data={sesionId:p.sesionId,liderUid:u.uid,respuestas:resps,actualizadoEn:FSV.serverTimestamp()};
     var pr=rdocId?db.collection("el_respuestas").doc(rdocId).update(data):db.collection("el_respuestas").add(data).then(function(ref){setRdocId(ref.id);});
     pr.then(function(){setBusy(false);setOkMsg("Respuestas guardadas");setTimeout(function(){setOkMsg("");},3000);});
   }
+
   if(!sesion)return React.createElement(Modal,{titulo:"Cargando...",onClose:p.onClose},React.createElement(Spin,null));
   var pregs=Array.isArray(sesion.preguntas)?sesion.preguntas:[];
+
   return React.createElement(Modal,{titulo:sesion.titulo,onClose:p.onClose},
-    React.createElement("div",{className:"tabs"},
-      React.createElement("button",{className:"tab "+(tab==="lectura"?"activo":""),onClick:function(){setTab("lectura");}},"Lectura"),
-      pregs.length>0?React.createElement("button",{className:"tab "+(tab==="preguntas"?"activo":""),onClick:function(){setTab("preguntas");}},"Preguntas ("+pregs.length+")"):null
-    ),
     React.createElement(Msg,{tipo:"ok",txt:okMsg}),
-    tab==="lectura"?React.createElement("div",{className:"lectura-body ql-editor",style:{padding:0},dangerouslySetInnerHTML:{__html:sesion.lectura||"<p>Sin lectura para esta sesion.</p>"}}):null,
-    tab==="preguntas"?React.createElement("div",null,
+
+    // LECTURA
+    sesion.lectura?React.createElement("div",null,
+      React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:12,paddingBottom:10,borderBottom:"2px solid var(--verde-xs)"}},
+        React.createElement("span",{style:{fontSize:20}},"\uD83D\uDCD6"),
+        React.createElement("span",{style:{fontWeight:700,fontSize:15,color:"var(--verde)"}},"Lectura")
+      ),
+      React.createElement("div",{className:"lectura-body ql-editor",style:{padding:0},dangerouslySetInnerHTML:{__html:sesion.lectura}})
+    ):null,
+
+    // SEPARADOR
+    pregs.length>0?React.createElement("div",{style:{margin:"24px 0",borderTop:"2px dashed var(--gris-cl)",position:"relative"}},
+      React.createElement("span",{style:{position:"absolute",top:-12,left:"50%",transform:"translateX(-50%)",background:"#fff",padding:"0 12px",fontSize:12,color:"var(--gris)",fontWeight:600,letterSpacing:1,textTransform:"uppercase"}},"Preguntas de reflexion")
+    ):null,
+
+    // PREGUNTAS
+    pregs.length>0?React.createElement("div",null,
+      React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:16}},
+        React.createElement("span",{style:{fontSize:20}},"\u270F\uFE0F"),
+        React.createElement("span",{style:{fontWeight:700,fontSize:15,color:"var(--verde)"}},"Responde las siguientes preguntas"),
+        React.createElement("span",{style:{fontSize:12,color:"var(--gris)",background:"var(--verde-xs)",padding:"2px 8px",borderRadius:20}},pregs.length+" preguntas")
+      ),
       pregs.map(function(preg,i){
         var texto=typeof preg==="object"?preg.pregunta:preg;
         var ctx=typeof preg==="object"?preg.contexto:"";
-        return React.createElement("div",{key:i,className:"pregunta-bloque"},
-          ctx?React.createElement("div",{className:"ql-editor",style:{fontSize:13,color:"#4b5563",marginBottom:8,lineHeight:1.6,background:"#f3f4f6",padding:"8px 12px",borderRadius:6,minHeight:"unset"},dangerouslySetInnerHTML:{__html:ctx}}):null,
-          React.createElement("div",{className:"pregunta-texto"},(i+1)+". "+texto),
-          React.createElement("textarea",{className:"respuesta-box",placeholder:"Escribe tu respuesta aqui...",value:resps[i]||"",onChange:function(e){var v=e.target.value;setResps(function(r){return Object.assign({},r,{[i]:v});}); }})
+        var respondida=!!(resps[i]&&resps[i].trim());
+        return React.createElement("div",{key:i,style:{marginBottom:20,background:respondida?"#f0fdf4":"#fff",border:"1.5px solid "+(respondida?"var(--verde-cl)":"var(--gris-cl)"),borderRadius:12,padding:16,transition:"all .2s"}},
+          React.createElement("div",{style:{display:"flex",alignItems:"flex-start",gap:10,marginBottom:ctx?8:10}},
+            React.createElement("div",{style:{width:26,height:26,borderRadius:"50%",background:respondida?"var(--verde)":"var(--gris-cl)",color:respondida?"#fff":"var(--gris)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:13,flexShrink:0}},respondida?"\u2713":(i+1)),
+            React.createElement("div",{style:{fontWeight:600,fontSize:14,color:"var(--carbon)",lineHeight:1.4}},texto)
+          ),
+          ctx?React.createElement("div",{className:"ql-editor",style:{fontSize:12,color:"#6b7280",marginBottom:10,lineHeight:1.6,background:"#f9fafb",padding:"8px 10px",borderRadius:6,minHeight:"unset"},dangerouslySetInnerHTML:{__html:ctx}}):null,
+          React.createElement("textarea",{
+            style:{width:"100%",padding:"10px 12px",border:"1.5px solid "+(respondida?"var(--verde-cl)":"var(--gris-cl)"),borderRadius:8,fontSize:14,fontFamily:"Inter,sans-serif",resize:"vertical",minHeight:90,background:respondida?"#f0fdf4":"#fff",transition:"all .2s"},
+            placeholder:"Escribe tu respuesta aqui...",
+            value:resps[i]||"",
+            onChange:function(e){var v=e.target.value;setResps(function(r){return Object.assign({},r,{[i]:v});});}
+          })
         );
       }),
-      React.createElement("div",{style:{textAlign:"right",marginTop:12}},
-        React.createElement("button",{className:"btn btn-primary",onClick:guardar,disabled:busy},busy?"Guardando...":"Guardar respuestas")
-      )
+
+      // Barra de progreso respuestas
+      React.createElement("div",{style:{background:"var(--gris-cl)",borderRadius:20,height:6,margin:"16px 0 4px"}},
+        React.createElement("div",{style:{height:"100%",background:"var(--verde)",borderRadius:20,transition:"width .4s",width:(Math.round(Object.keys(resps).filter(function(k){return resps[k]&&resps[k].trim();}).length/pregs.length*100))+"%"}})
+      ),
+      React.createElement("div",{style:{fontSize:12,color:"var(--gris)",marginBottom:16}},
+        Object.keys(resps).filter(function(k){return resps[k]&&resps[k].trim();}).length+" de "+pregs.length+" respondidas"
+      ),
+
+      React.createElement("button",{
+        className:"btn btn-primary",
+        style:{width:"100%",justifyContent:"center",padding:14,fontSize:15},
+        onClick:guardar,
+        disabled:busy
+      },busy?"\uD83D\uDCBE Guardando...":"\uD83D\uDCBE Guardar mis respuestas")
     ):null,
-    React.createElement("div",{className:"modal-footer"},React.createElement("button",{className:"btn btn-secondary",onClick:p.onClose},"Cerrar"))
+
+    React.createElement("div",{className:"modal-footer"},
+      React.createElement("button",{className:"btn btn-secondary",onClick:p.onClose},"Cerrar")
+    )
   );
 }
 
