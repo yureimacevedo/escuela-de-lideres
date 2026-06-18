@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Escuela de Lideres</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+:root{--verde:#2D6A4F;--verde-cl:#40916C;--verde-xs:#D8F3DC;--dorado:#B5820A;--crema:#FAF7F2;--carbon:#1A1A1A;--gris:#6B7280;--gris-cl:#E5E7EB;--rojo:#DC2626;--radio:12px;--sombra:0 2px 12px rgba(0,0,0,.08)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,sans-serif;background:var(--crema);color:var(--carbon);min-height:100vh}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#1a3a2a 0%,#2D6A4F 60%,#40916C 100%);padding:24px}
+.login-card{background:#fff;border-radius:20px;padding:40px 28px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.login-logo{text-align:center;margin-bottom:32px}
+.login-logo .marca{font-family:"Playfair Display",serif;font-size:26px;color:var(--verde);line-height:1.2}
+.login-logo .sub{font-size:12px;color:var(--gris);letter-spacing:2px;text-transform:uppercase;margin-top:4px}
+.shell{display:flex;min-height:100vh}
+.sidebar{width:240px;min-height:100vh;background:linear-gradient(180deg,#1a3a2a 0%,#2D6A4F 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;transition:transform .3s}
+.sidebar-logo{padding:28px 20px 20px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sidebar-logo .nombre{font-family:"Playfair Display",serif;color:#fff;font-size:17px;line-height:1.3}
+.rol-badge{display:inline-block;margin-top:6px;background:rgba(255,255,255,.15);color:#a7f3d0;font-size:11px;padding:2px 8px;border-radius:20px}
+.nav{flex:1;padding:16px 0;overflow-y:auto}
+.nav-section{padding:8px 16px 4px;font-size:10px;color:rgba(255,255,255,.4);letter-spacing:1.5px;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;color:rgba(255,255,255,.75);cursor:pointer;font-size:14px;border-left:3px solid transparent;transition:all .15s;user-select:none}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-item.activo{background:rgba(255,255,255,.12);color:#fff;border-left-color:#6EE7B7}
+.nav-item .icon{font-size:18px;width:22px;text-align:center}
+.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,.1)}
+.btn-salir{width:100%;padding:9px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;color:rgba(255,255,255,.7);cursor:pointer;font-size:13px}
+.main{margin-left:240px;flex:1;padding:32px;min-height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px}
+.page-title{font-family:"Playfair Display",serif;font-size:26px;color:var(--carbon)}
+.page-sub{font-size:14px;color:var(--gris);margin-top:2px}
+.tarjeta{background:#fff;border-radius:var(--radio);box-shadow:var(--sombra);padding:24px;margin-bottom:20px;overflow-x:auto}
+.tarjeta-titulo{font-weight:600;font-size:15px;margin-bottom:16px;color:var(--carbon)}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{background:#fff;border-radius:var(--radio);padding:20px;box-shadow:var(--sombra);text-align:center}
+.stat-num{font-family:"Playfair Display",serif;font-size:36px;color:var(--verde)}
+.stat-label{font-size:12px;color:var(--gris);margin-top:4px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.tabla{width:100%;border-collapse:collapse;font-size:14px}
+.tabla th{text-align:left;padding:10px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--gris);border-bottom:2px solid var(--gris-cl)}
+.tabla td{padding:12px;border-bottom:1px solid var(--gris-cl);vertical-align:middle}
+.tabla tr:last-child td{border-bottom:none}
+.tabla tr:hover td{background:var(--crema)}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500}
+.badge-verde{background:var(--verde-xs);color:var(--verde)}
+.badge-dorado{background:#FEF3C7;color:var(--dorado)}
+.badge-gris{background:var(--gris-cl);color:var(--gris)}
+.btn{padding:9px 18px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:500;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--verde);color:#fff}.btn-primary:hover{background:#235c40}
+.btn-secondary{background:var(--gris-cl);color:var(--carbon)}
+.btn-ghost{background:transparent;color:var(--verde);border:1px solid var(--verde)}.btn-ghost:hover{background:var(--verde-xs)}
+.btn-peligro{background:var(--rojo);color:#fff}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.campo{margin-bottom:16px}
+.campo label{display:block;font-size:13px;font-weight:500;margin-bottom:6px;color:var(--carbon)}
+.campo input,.campo select,.campo textarea{width:100%;padding:10px 13px;border:1.5px solid var(--gris-cl);border-radius:8px;font-size:14px;font-family:Inter,sans-serif;background:#fff;transition:border-color .15s;color:var(--carbon)}
+.campo input:focus,.campo select:focus,.campo textarea:focus{outline:none;border-color:var(--verde)}
+.campo textarea{min-height:100px;resize:vertical}
+.campo-hint{font-size:12px;color:var(--gris);margin-top:4px}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:#fff;border-radius:16px;padding:32px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-titulo{font-family:"Playfair Display",serif;font-size:20px;color:var(--carbon)}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:24px}
+.alerta{padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:16px}
+.alerta-error{background:#FEE2E2;color:#991b1b;border-left:3px solid var(--rojo)}
+.alerta-ok{background:var(--verde-xs);color:#1a5c3a;border-left:3px solid var(--verde)}
+.alerta-info{background:#EFF6FF;color:#1e40af;border-left:3px solid #3b82f6}
+.sesion-card{background:#fff;border-radius:var(--radio);box-shadow:var(--sombra);padding:20px;margin-bottom:14px;border-left:4px solid var(--verde-cl);cursor:pointer;transition:all .15s}
+.sesion-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.12);transform:translateY(-1px)}
+.sesion-num{font-size:11px;color:var(--gris);text-transform:uppercase;letter-spacing:1px}
+.sesion-titulo{font-weight:600;font-size:16px;margin:4px 0}
+.sesion-fecha{font-size:12px;color:var(--gris)}
+.habito-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--gris-cl)}
+.habito-item:last-child{border-bottom:none}
+.habito-check{width:24px;height:24px;border-radius:50%;border:2px solid var(--verde);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;font-weight:bold;color:transparent}
+.habito-check.marcado{background:var(--verde);color:#fff}
+.habito-texto{flex:1;font-size:14px}
+.barra-wrap{background:var(--gris-cl);border-radius:20px;height:8px;overflow:hidden}
+.barra-fill{height:100%;background:linear-gradient(90deg,var(--verde),var(--verde-cl));border-radius:20px;transition:width .5s}
+.lectura-body{font-size:15px;line-height:1.8;color:#374151;white-space:pre-wrap}
+.pregunta-bloque{background:var(--crema);border-radius:10px;padding:16px;margin-bottom:14px}
+.pregunta-texto{font-weight:500;font-size:14px;margin-bottom:10px}
+.respuesta-box{width:100%;padding:10px;border:1.5px solid var(--gris-cl);border-radius:8px;font-size:14px;font-family:Inter,sans-serif;resize:vertical;min-height:80px;background:#fff}
+.respuesta-box:focus{outline:none;border-color:var(--verde)}
+.tabs{display:flex;gap:4px;background:var(--gris-cl);border-radius:10px;padding:4px;margin-bottom:20px}
+.tab{flex:1;padding:8px;border-radius:7px;border:none;background:transparent;cursor:pointer;font-size:13px;font-weight:500;color:var(--gris);transition:all .15s;text-align:center}
+.tab.activo{background:#fff;color:var(--verde);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.notif-banner{background:linear-gradient(135deg,#B5820A,#d97706);color:#fff;border-radius:var(--radio);padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px;font-size:14px}
+.spinner{border:3px solid var(--gris-cl);border-top-color:var(--verde);border-radius:50%;width:36px;height:36px;animation:spin .7s linear infinite;margin:40px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.vacio{text-align:center;padding:40px 20px;color:var(--gris);font-size:14px}
+.carga-full{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--crema)}
+
+.ql-container{font-family:Inter,sans-serif;font-size:15px;border-bottom-left-radius:8px;border-bottom-right-radius:8px;border-color:var(--gris-cl);}
+.ql-toolbar{border-top-left-radius:8px;border-top-right-radius:8px;border-color:var(--gris-cl);background:#fafafa;}
+.ql-editor{min-height:180px;line-height:1.8;}
+.ql-editor:focus{outline:none;}
+.menu-toggle{display:none}
+@media(max-width:768px){
+.sidebar{transform:translateX(-100%)}
+.sidebar.open{transform:translateX(0)}
+.main{margin-left:0;padding:12px;padding-top:64px}
+.grid2{grid-template-columns:1fr}
+.menu-toggle{display:block;position:fixed;top:14px;left:14px;z-index:300;background:var(--verde);color:#fff;border:none;border-radius:8px;padding:8px 11px;font-size:18px;cursor:pointer;box-shadow:var(--sombra)}
+.topbar{flex-direction:column;align-items:flex-start;gap:8px;margin-bottom:16px}
+.page-title{font-size:20px}
+.modal{padding:20px;border-radius:12px;max-height:95vh}
+.modal-titulo{font-size:17px}
+.modal-footer{flex-direction:column-reverse}
+.modal-footer .btn{width:100%;justify-content:center}
+.tabla{font-size:12px}
+.tabla th{padding:8px 6px;font-size:10px}
+.tabla td{padding:8px 6px}
+.btn{font-size:13px;padding:8px 14px}
+.btn-sm{font-size:11px;padding:4px 10px}
+.stats-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+.stat-num{font-size:28px}
+.tarjeta{padding:16px}
+.sesion-card{padding:14px}
+.tabs{gap:2px}
+.tab{font-size:12px;padding:7px 4px}
+.login-card{padding:32px 20px}
+.notif-banner{font-size:13px;padding:12px}
+.ql-toolbar{flex-wrap:wrap}
+.overlay{padding:8px;align-items:flex-end}
+.modal{border-bottom-left-radius:0;border-bottom-right-radius:0;max-height:92vh}
+}
+@media(max-width:400px){
+.stats-grid{grid-template-columns:1fr 1fr}
+.stat-num{font-size:24px}
+.page-title{font-size:18px}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+var _fc={
+  apiKey:"AIzaSyAnIdMMFURTfF9D6S7y-O4xbSXHVdGBeAI",
+  authDomain:"escuela-de-lideres-ba682.firebaseapp.com",
+  projectId:"escuela-de-lideres-ba682",
+  storageBucket:"escuela-de-lideres-ba682.firebasestorage.app",
+  messagingSenderId:"253513862233",
+  appId:"1:253513862233:web:2db8237b572a1293fa3548"
+};
+try{firebase.initializeApp(_fc);}catch(e){if(!e.message.includes("already"))throw e;}
+window._auth=firebase.auth();
+window._db=firebase.firestore();
+</script>
+<script type="text/babel">
+
+var _useState=React.useState,_useEffect=React.useEffect;
+var auth=window._auth,db=window._db,FSV=firebase.firestore.FieldValue;
+
+function fechaHoy(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+
+function useCol(path,wheres){
+  wheres=wheres||[];
+  var rs=_useState([]),docs=rs[0],setDocs=rs[1];
+  var rl=_useState(false),listo=rl[0],setListo=rl[1];
+  _useEffect(function(){
+    if(!path){setListo(true);return;}
+    var q=db.collection(path);
+    wheres.forEach(function(w){q=q.where(w[0],w[1],w[2]);});
+    var u=q.onSnapshot(function(s){setDocs(s.docs.map(function(d){return Object.assign({id:d.id},d.data());}));setListo(true);},function(e){console.error(e);setListo(true);});
+    return u;
+  },[path,JSON.stringify(wheres)]);
+  return {docs:docs,listo:listo};
+}
+
+function Spin(){return React.createElement("div",{className:"spinner"});}
+
+function Msg(p){
+  if(!p.txt)return null;
+  return React.createElement("div",{className:"alerta alerta-"+(p.tipo||"error")},p.txt);
+}
+
+function Modal(p){
+  return React.createElement("div",{className:"overlay",onClick:function(e){if(e.target===e.currentTarget)p.onClose();}},
+    React.createElement("div",{className:"modal"},
+      React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}},
+        React.createElement("div",{className:"modal-titulo"},p.titulo),
+        React.createElement("button",{onClick:p.onClose,style:{border:"none",background:"none",fontSize:26,cursor:"pointer",color:"#9ca3af",lineHeight:1,padding:0}},"x")
+      ),
+      p.children
+    )
+  );
+}
+
+function Confirmar(p){
+  return React.createElement(Modal,{titulo:"Confirmar",onClose:p.onCancel},
+    React.createElement("p",{style:{color:"#374151",marginBottom:20}},p.msg),
+    React.createElement("div",{className:"modal-footer"},
+      React.createElement("button",{className:"btn btn-secondary",onClick:p.onCancel},"Cancelar"),
+      React.createElement("button",{className:"btn btn-peligro",onClick:p.onOk},"Confirmar")
+    )
+  );
+}
+
+function Login(p){
+  var se=_useState(""),email=se[0],setEmail=se[1];
+  var sp=_useState(""),pass=sp[0],setPass=sp[1];
+  var serr=_useState(""),err=serr[0],setErr=serr[1];
+  var sb=_useState(false),busy=sb[0],setBusy=sb[1];
+  function submit(e){
+    e.preventDefault();setErr("");setBusy(true);
+    auth.signInWithEmailAndPassword(email,pass).then(function(c){
+      return db.collection("el_usuarios").doc(c.user.uid).get().then(function(s){
+        if(!s.exists)throw new Error("Usuario no encontrado. Contacta al coach.");
+        p.onLogin(Object.assign({uid:c.user.uid},s.data()));
+      });
+    }).catch(function(e){
+      var m=e.message||"";
+      setErr(m.includes("password")||m.includes("user-not-found")||m.includes("wrong-password")?"Correo o contrasena incorrectos.":m);
+      setBusy(false);
+    });
+  }
+  return React.createElement("div",{className:"login-wrap"},
+    React.createElement("div",{className:"login-card"},
+      React.createElement("div",{className:"login-logo"},
+        React.createElement("div",{style:{fontSize:48,marginBottom:12}},"\uD83C\uDF31"),
+        React.createElement("div",{className:"marca"},"Escuela",React.createElement("br"),"de Lideres"),
+        React.createElement("div",{className:"sub"},"Coaching Empresarial")
+      ),
+      React.createElement(Msg,{txt:err}),
+      React.createElement("form",{onSubmit:submit},
+        React.createElement("div",{className:"campo"},React.createElement("label",null,"Correo electronico"),React.createElement("input",{type:"email",value:email,onChange:function(e){setEmail(e.target.value);},placeholder:"tucorreo@empresa.com",required:true})),
+        React.createElement("div",{className:"campo"},React.createElement("label",null,"Contrasena"),React.createElement("input",{type:"password",value:pass,onChange:function(e){setPass(e.target.value);},placeholder:"........",required:true})),
+        React.createElement("button",{className:"btn btn-primary",style:{width:"100%",padding:"12px",justifyContent:"center",marginTop:8},disabled:busy},busy?"Ingresando...":"Ingresar")
+      ),
+      React.createElement("p",{style:{textAlign:"center",marginTop:20,fontSize:12,color:"#9ca3af"}},"Problemas para ingresar? Contacta a tu coach.")
+    )
+  );
+}
+
+function NavItem(p){
+  return React.createElement("div",{className:"nav-item "+(p.activo?"activo":""),onClick:p.onClick},
+    React.createElement("span",{className:"icon"},p.icon),p.label
+  );
+}
+
+function Sidebar(p){
+  var u=p.usuario,esA=u.rol==="admin",esG=u.rol==="gerente";
+  function ni(icon,label,id){return React.createElement(NavItem,{key:id,icon:icon,label:label,activo:p.pag===id,onClick:function(){p.setPag(id);}});}
+  var items=[ni("\uD83C\uDFE0","Inicio","inicio")];
+  if(esA){items.push(React.createElement("div",{key:"sg",className:"nav-section"},"Gestion"));items.push(ni("\uD83C\uDFE2","Empresas","empresas"));items.push(ni("\uD83D\uDC65","Grupos","grupos"));items.push(ni("\uD83D\uDC64","Usuarios","usuarios"));items.push(React.createElement("div",{key:"sp",className:"nav-section"},"Programa"));items.push(ni("\uD83D\uDCDA","Sesiones","sesiones"));items.push(ni("\uD83D\uDCCB","Asignaciones","asignaciones"));items.push(ni("\u2705","Habitos","habitos-admin"));}
+  if(esG){items.push(React.createElement("div",{key:"se",className:"nav-section"},"Mi empresa"));items.push(ni("\uD83D\uDC65","Mi grupo","mi-grupo"));}
+  if(!esA&&!esG){items.push(React.createElement("div",{key:"sm",className:"nav-section"},"Mi proceso"));items.push(ni("\uD83D\uDCD6","Mis sesiones","mis-sesiones"));items.push(ni("\u2705","Mis habitos","mis-habitos"));}
+  return React.createElement("div",{className:"sidebar "+(p.open?"open":"")},
+    React.createElement("div",{className:"sidebar-logo"},
+      React.createElement("div",{style:{fontSize:28,marginBottom:6}},"\uD83C\uDF31"),
+      React.createElement("div",{className:"nombre"},"Escuela de Lideres"),
+      React.createElement("span",{className:"rol-badge"},esA?"Coach":esG?"Gerente":"Lider"),
+      React.createElement("div",{style:{fontSize:12,color:"rgba(255,255,255,.5)",marginTop:6}},u.nombre)
+    ),
+    React.createElement("nav",{className:"nav"},items),
+    React.createElement("div",{className:"sidebar-footer"},React.createElement("button",{className:"btn-salir",onClick:function(){auth.signOut();}},"Cerrar sesion"))
+  );
+}
+
+function InicioAdmin(p){
+  var u=p.usuario;
+  var r1=useCol("el_empresas"),r2=useCol("el_grupos"),r3=useCol("el_usuarios"),r4=useCol("el_sesiones");
+  var lideres=r3.docs.filter(function(x){return x.rol==="lider";});
+  return React.createElement("div",null,
+    React.createElement("div",{className:"topbar"},React.createElement("div",null,React.createElement("div",{className:"page-title"},"Hola, ",u.nombre.split(" ")[0]),React.createElement("div",{className:"page-sub"},"Resumen de tu practica"))),
+    React.createElement("div",{className:"stats-grid"},
+      React.createElement("div",{className:"stat-card"},React.createElement("div",{className:"stat-num"},r1.docs.length),React.createElement("div",{className:"stat-label"},"Empresas")),
+      React.createElement("div",{className:"stat-card"},React.createElement("div",{className:"stat-num"},r2.docs.length),React.createElement("div",{className:"stat-label"},"Grupos")),
+      React.createElement("div",{className:"stat-card"},React.createElement("div",{className:"stat-num"},lideres.length),React.createElement("div",{className:"stat-label"},"Lideres")),
+      React.createElement("div",{className:"stat-card"},React.createElement("div",{className:"stat-num"},r4.docs.length),React.createElement("div",{className:"stat-label"},"Sesiones"))
+    ),
+    React.createElement("div",{className:"grid2"},
+      React.createElement("div",{className:"tarjeta"},React.createElement("div",{className:"tarjeta-titulo"},"Empresas"),r1.docs.length===0?React.createElement("div",{className:"vacio"},"Sin empresas aun"):r1.docs.map(function(e){return React.createElement("div",{key:e.id,style:{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid var(--gris-cl)",fontSize:14}},React.createElement("span",null,e.nombre),React.createElement("span",{className:"badge badge-verde"},e.sector||"—"));})),
+      React.createElement("div",{className:"tarjeta"},React.createElement("div",{className:"tarjeta-titulo"},"Sesiones recientes"),r4.docs.length===0?React.createElement("div",{className:"vacio"},"Sin sesiones aun"):r4.docs.slice(-5).reverse().map(function(s){return React.createElement("div",{key:s.id,style:{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid var(--gris-cl)",fontSize:14}},React.createElement("span",null,s.titulo),React.createElement("span",{className:"badge badge-dorado"},"#"+s.numero));}))
+    )
+  );
+}
+
+function InicioLider(p){
+  var u=p.usuario,hoy=fechaHoy();
+  var r1=useCol("el_habitos_asignados",[["liderUid","==",u.uid]]);
+  var r2=useCol("el_habitos_dia",[["liderUid","==",u.uid],["fecha","==",hoy]]);
+  var r3=useCol("el_sesiones_asignadas",[["grupoId","==",u.grupoId||"__N__"]]);
+  var activos=r1.docs.filter(function(h){return h.activo!==false;});
+  var comp=r2.docs.filter(function(c){return c.completado;}).length;
+  var pct=activos.length?Math.round(comp/activos.length*100):0;
+  var hora=new Date().getHours();
+  var sal=hora<12?"Buenos dias":hora<18?"Buenas tardes":"Buenas noches";
+  return React.createElement("div",null,
+    React.createElement("div",{className:"topbar"},React.createElement("div",null,React.createElement("div",{className:"page-title"},sal+", "+u.nombre.split(" ")[0]),React.createElement("div",{className:"page-sub"},"Tu espacio de crecimiento"))),
+    activos.length>0&&pct<100?React.createElement("div",{className:"notif-banner"},React.createElement("span",{style:{fontSize:22}},"\uD83D\uDD14"),React.createElement("div",null,React.createElement("strong",null,"Recuerda tus habitos de hoy"),React.createElement("div",{style:{fontSize:12,opacity:.9,marginTop:2}},comp+" de "+activos.length+" completados ("+pct+"%)"))):null,
+    React.createElement("div",{className:"stats-grid"},
+      React.createElement("div",{className:"stat-card"},React.createElement("div",{className:"stat-num"},pct+"%"),React.createElement("div",{className:"stat-label"},"Habitos hoy")),
+      React.createElement("div",{className:"stat-card"},React.createElement("div",{className:"stat-num"},r3.docs.length),React.createElement("div",{className:"stat-label"},"Sesiones")),
+      React.createElement("div",{className:"stat-card"},React.createElement("div",{className:"stat-num"},activos.length),React.createElement("div",{className:"stat-label"},"Habitos activos"))
+    ),
+    React.createElement("div",{className:"tarjeta"},
+      React.createElement("div",{className:"tarjeta-titulo"},"Proximas sesiones"),
+      r3.docs.length===0?React.createElement("div",{className:"vacio"},"Aun no tienes sesiones asignadas"):r3.docs.slice().sort(function(a,b){return a.numero-b.numero;}).slice(0,3).map(function(s){return React.createElement("div",{key:s.id,className:"sesion-card",style:{cursor:"default"}},React.createElement("div",{className:"sesion-num"},"Sesion "+s.numero),React.createElement("div",{className:"sesion-titulo"},s.titulo),React.createElement("div",{className:"sesion-fecha"},s.fecha||"Sin fecha"));})
+    )
+  );
+}
+
+function InicioGerente(p){
+  var u=p.usuario;
+  var r=useCol("el_usuarios",[["grupoId","==",u.grupoId||"__N__"]]);
+  var lideres=r.docs.filter(function(x){return x.rol==="lider";});
+  return React.createElement("div",null,
+    React.createElement("div",{className:"topbar"},React.createElement("div",null,React.createElement("div",{className:"page-title"},"Hola, "+u.nombre.split(" ")[0]),React.createElement("div",{className:"page-sub"},"Progreso de tu equipo"))),
+    React.createElement("div",{className:"tarjeta"},
+      React.createElement("div",{className:"tarjeta-titulo"},"Lideres del grupo"),
+      React.createElement("table",{className:"tabla"},React.createElement("thead",null,React.createElement("tr",null,React.createElement("th",null,"Nombre"),React.createElement("th",null,"Correo"))),React.createElement("tbody",null,lideres.map(function(l){return React.createElement("tr",{key:l.id},React.createElement("td",null,l.nombre),React.createElement("td",{style:{color:"var(--gris)"}},l.correo));}))),
+      lideres.length===0?React.createElement("div",{className:"vacio"},"Sin lideres aun"):null
+    )
+  );
+}
+
+function useCRUD(col){
+  function guardar(d,editId){
+    if(editId)return db.collection(col).doc(editId).update(d);
+    return db.collection(col).add(Object.assign({creadoEn:FSV.serverTimestamp()},d));
+  }
+  function eliminar(id){return db.collection(col).doc(id).delete();}
+  return {guardar:guardar,eliminar:eliminar};
+}
+
+function BtnAcciones(p){
+  return React.createElement("td",null,
+    React.createElement("button",{className:"btn btn-ghost btn-sm",onClick:p.onEdit},"Editar"),
+    " ",
+    React.createElement("button",{className:"btn btn-secondary btn-sm",onClick:p.onDel},"Eliminar")
+  );
+}
+
+function FormBase(p){
+  return React.createElement(Modal,{titulo:p.titulo,onClose:p.onClose},
+    React.createElement(Msg,{txt:p.err}),
+    p.children,
+    React.createElement("div",{className:"modal-footer"},
+      React.createElement("button",{className:"btn btn-secondary",onClick:p.onClose},"Cancelar"),
+      React.createElement("button",{className:"btn btn-primary",onClick:p.onOk,disabled:p.busy},p.busy?"Guardando...":"Guardar")
+    )
+  );
+}
+
+function PagEmpresas(){
+  var r=useCol("el_empresas"),crud=useCRUD("el_empresas");
+  var sm=_useState(false),modal=sm[0],setModal=sm[1];
+  var se=_useState(null),edit=se[0],setEdit=se[1];
+  var sd=_useState(null),del=sd[0],setDel=sd[1];
+  function open(e){setEdit(e||null);setModal(true);}
+  function close(){setModal(false);setEdit(null);}
+  if(!r.listo)return React.createElement(Spin,null);
+  return React.createElement("div",null,
+    React.createElement("div",{className:"topbar"},React.createElement("div",null,React.createElement("div",{className:"page-title"},"Empresas"),React.createElement("div",{className:"page-sub"},r.docs.length+" registrada(s)")),React.createElement("button",{className:"btn btn-primary",onClick:function(){open(null);}},"+ Nueva empresa")),
+    React.createElement("div",{className:"tarjeta"},
+      React.createElement("table",{className:"tabla"},React.createElement("thead",null,React.createElement("tr",null,React.createElement("th",null,"Empresa"),React.createElement("th",null,"Sector"),React.createElement("th",null,"Contacto"),React.createElement("th",null,"Acciones"))),React.createElement("tbody",null,r.docs.map(function(e){return React.createElement("tr",{key:e.id},React.createElement("td",null,React.createElement("strong",null,e.nombre)),React.createElement("td",null,React.createElement("span",{className:"badge badge-verde"},e.sector||"—")),React.createElement("td",null,e.contacto||"—"),React.createElement(BtnAcciones,{onEdit:function(){open(e);},onDel:function(){setDel(e.id);}}));})))
+      ,r.docs.length===0?React.createElement("div",{className:"vacio"},"Crea tu primera empresa"):null
+    ),
+    modal?React.createElement(FormEmpresa,{inicial:edit,crud:crud,onClose:close}):null,
+    del?React.createElement(Confirmar,{msg:"Eliminar esta empresa?",onOk:function(){crud.eliminar(del).then(function(){setDel(null);});},onCancel:function(){setDel(null);}}):null
+  );
+}
+
+function FormEmpresa(p){
+  var ini=p.inicial||{};
+  var sf=_useState({nombre:ini.nombre||"",sector:ini.sector||"",contacto:ini.contacto||"",correo:ini.correo||""}),f=sf[0],setF=sf[1];
+  var se=_useState(""),err=se[0],setErr=se[1];
+  var sb=_useState(false),busy=sb[0],setBusy=sb[1];
+  function set(k,v){setF(function(x){return Object.assign({},x,{[k]:v});});}
+  function ok(){if(!f.nombre.trim()){setErr("El nombre es obligatorio");return;}setBusy(true);p.crud.guardar(f,p.inicial?p.inicial.id:null).then(p.onClose).catch(function(e){setErr(e.message);setBusy(false);});}
+  return React.createElement(FormBase,{titulo:p.inicial?"Editar empresa":"Nueva empresa",onClose:p.onClose,onOk:ok,busy:busy,err:err},
+    React.createElement("div",{className:"campo"},React.createElement("label",null,"Nombre *"),React.createElement("input",{value:f.nombre,onChange:function(e){set("nombre",e.target.value);}})),
+    React.createElement("div",{className:"campo"},React.createElement("label",null,"Sector"),React.createElement("input",{value:f.sector,onChange:function(e){set("sector",e.target.value);}})),
+    React.createElement("div",{className:"campo"},React.createElement("label",null,"Contacto"),React.createElement("input",{value:f.contacto,onChange:function(e){set("contacto",e.target.value);}})),
+    React.createElement("div",{className:"campo"},React.createElement("label",null,"Correo"),React.createElement("input",{type:"email",value:f.correo,onChange:function(e){set("correo",e.target.value);}}))
+  );
+}
+
+function PagGrupos(){
+  var r=useCol("el_grupos"),re=useCol("el_empresas"),crud=useCRUD("el_grupos");
+  var sm=_useState(false),modal=sm[0],setModal=sm[1];
+  var se=_useState(null),edit=se[0],setEdit=se[1];
+  var sd=_useState(null),del=sd[0],setDel=sd[1];
+  function nomE(id){var x=re.docs.find(function(e){return e.id===id;});return x?x.nombre:"—";}
+  function open(e){setEdit(e||null);setModal(true);}
+  function close(){setModal(false);setEdit(null);}
+  if(!r.listo)return React.createElement(Spin,null);
+  return React.createElement("div",null,
+    React.createElement("div",{className:"topbar"},React.createElement("div",null,React.createElement("div",{className:"page-title"},"Grupos"),React.createElement("div",{className:"page-sub"},r.docs.length+" grupo(s)")),React.createElement("button",{className:"btn btn-primary",onClick:function(){open(null);}},"+ Nuevo grupo")),
+    React.createElement("div",{className:"tarjeta"},
+      React.createElement("table",{className:"tabla"},React.createElement("thead",null,React.createElement("tr",null,React.createElement("th",null,"Grupo"),React.createElement("th",null,"Empresa"),React.createElement("th",null,"Ano inicio"),React.createElement("th",null,"Acciones"))),React.createElement("tbody",null,r.docs.map(function(g){return React.createElement("tr",{key:g.id},React.createElement("td",null,React.createElement("strong",null,g.nombre)),React.createElement("td",null,nomE(g.empresaId)),React.createElement("td",null,g.anioInicio||"—"),React.createElement(BtnAcciones,{onEdit:function(){open(g);},onDel:function(){setDel(g.id);}}));})))
+      ,r.docs.length===0?React.createElement("div",{className:"vacio"},"Sin grupos aun"):null
+    ),
+    modal?React.createElement(FormGrupo,{inicial:edit,empresas:re.docs,crud:crud,onClose:close}):null,
+    del?React.createElement(Confirmar,{msg:"Eliminar este grupo?",onOk:function(){crud.eliminar(del).then(function(){setDel(null);});},onCancel:function(){setDel(null);}}):null
+  );
+}
+
+function FormGrupo(p){
+  var ini=p.inicial||{};
+  var sf=_useState({nombre:ini.nombre||"",empresaId:ini.empresaId||"",anioInicio:ini.anioInicio||String(new Date().getFullYear())}),f=sf[0],setF=sf[1];
+  var se=_useState(""),err=se[0],setErr=se[1];
+  var sb=_useState(false),busy=sb[0],setBusy=sb[1];
+  function set(k,v){setF(function(x){return Object.assign({},x,{[k]:v});});}
+  function ok(){if(!f.nombre.trim()||!f.empresaId){setErr("Nombre y empresa son obligatorios");return;}setBusy(true);p.crud.guardar(f,p.inicial?p.inicial.id:null).then(p.onClose).catch(function(e){setErr(e.message);setBusy(false);});}
+  return React.createElement(FormBase,{titulo:p.inicial?"Editar grupo":"Nuevo grupo",onClose:p.onClose,onOk:ok,busy:busy,err:err},
+    React.createElement("div",{className:"campo"},React.createElement("label",null,"Nombre *"),React.createElement("input",{value:f.nombre,onChange:function(e){set("nombre",e.target.value);}})),
+    React.createElement("div",{className:"campo"},React.createElement("label",null,"Empresa *"),React.createElement("select",{value:f.empresaId,onChange:function(e){set("empresaId",e.target.value);}},React.createElement("option",{value:""},"Seleccionar..."),p.empresas.map(function(e){return React.createElement("option",{key:e.id,value:e.id},e.nombre);}))),
+    React.createElement("div",{className:"campo"},React.createElement("label",null,"Ano de inicio"),React.createElement("input",{value:f.anioInicio,onChange:function(e){set("anioInicio",e.target.value);}}))
+  );
+}
+
+function PagUsuarios(){
+  var r=useCol("el_usuarios"),rg=useCol("el_grupos"),re=useCol("el_empresas"),crud=useCRUD("el_usuarios");
+  var sm=_useState(false),modal=sm[0],setModal=sm[1];
+  var se=_useState(null),edit=se[0],setEdit=se[1];
+  var sd=_useState(null),del=sd[0],setDel=sd[1];
+  var sf=_useState("todos"),filtro=sf[0],setFiltro=sf[1];
+  function nomG(id){var x=rg.docs.find(function(g){return g.id===id;});return x?x.nombre:"—";}
+  function nomE(id){var x=re.docs.find(function(e){return e.id===id;});return x?x.nombre:"—";}
+  function open(u){setEdit(u||null);setModal(true);}
+  function close(){setModal(false);setEdit(null);}
+  var filtrados=filtro==="todos"?r.docs:r.docs.filter(function(u){return u.rol===filtro;});
+  if(!r.listo)return React.createElement(Spin,null);
+  var btnFiltros=[["todos","Todos"],["admin","Coach"],["gerente","Gerente"],["lider","Lider"]];
+  return React.createElement("div",null,
+    React.createElement("div",{className:"topbar"},React.createElement("div",null,React.createElement("div",{className:"page-title"},"Usuarios"),React.createElement("div",{className:"page-sub"},r.docs.length+" usuario(s)")),React.createElement("button",{className:"btn btn-primary",onClick:function(){open(null);}},"+ Nuevo usuario")),
+    React.createElement("div",{style:{display:"flex",gap:8,marginBottom:16,flexWrap:"wrap"}},btnFiltros.map(function(x){return React.createElement("button",{key:x[0],className:"btn btn-sm "+(filtro===x[0]?"btn-primary":"btn-secondary"),onClick:function(){setFiltro(x[0]);}},x[1]);})),
+    React.createElement("div",{className:"tarjeta"},
+      React.createElement("table",{className:"tabla"},React.createElement("thead",null,React.createElement("tr",null,React.createElement("th",null,"Nombre"),React.createElement("th",null,"Rol"),React.createElement("th",null,"Correo"),React.createElement("th",null,"Empresa"),React.createElement("th",null,"Grupo"),React.createElement("th",null,"Acciones"))),React.createElement("tbody",null,filtrados.map(function(u){var rb=u.rol==="admin"?"badge-dorado":u.rol==="gerente"?"badge-verde":"badge-gris";var rl=u.rol==="admin"?"Coach":u.rol==="gerente"?"Gerente":"Lider";return React.createElement("tr",{key:u.id},React.createElement("td",null,React.createElement("strong",null,u.nombre)),React.createElement("td",null,React.createElement("span",{className:"badge "+rb},rl)),React.createElement("td",{style:{color:"var(--gris)"}},u.correo),React.createElement("td",null,u.empresaId?nomE(u.empresaId):"—"),React.createElement("td",null,u.grupoId?nomG(u.grupoId):"—"),React.createElement(BtnAcciones,{onEdit:function(){open(u);},onDel:function(){setDel(u.id);}}));})))
+      ,filtrados.length===0?React.createElement("div",{className:"vacio"},"Sin usuarios"):null
+    ),
+    modal?React.createElement(FormUsuario,{inicial:edit,grupos:rg.docs,empresas:re.docs,crud:crud,onClose:close}):null,
+    del?React.createElement(Confirmar,{msg:"Eliminar este usuario?",onOk:function(){crud.eliminar(del).then(function(){setDel(null);});},onCancel:function(){setDel(null);}}):null
+  );
+}
+
+function FormUsuario(p){
+  var ini=p.inicial||{};
+  var sf=_useState({nombre:ini.nombre||"",correo:ini.correo||"",rol:ini.rol||"lider",empresaId:ini.empresaId||"",grupoId:ini.grupoId||"",clave:""}),f=sf[0],setF=sf[1];
+  var se=_useState(""),err=se[0],setErr=se[1];
+  var sa=_useState(""),aviso=sa[0],setAviso=sa[1];
+  var sb=_useState(false),busy=sb[0],setBusy=sb[1];
+  function set(k,v){setF(function(x){return Object.assign({},x,{[k]:v});});}
+  var gf=f.empresaId?p.grupos.filter(function(g){return g.empresaId===f.empresaId;}):p.grupos;
+  function ok(){
+    if(!f.nombre.trim()||!f.correo.trim()){setErr("Nombre y correo son obligatorios");return;}
+    if(!p.inicial&&!f.clave.trim()){setErr("La contrasena es obligatoria para usuarios nuevos");return;}
+    if(!p.inicial&&f.clave.length<6){setErr("La contrasena debe tener al menos 6 caracteres");return;}
+    setBusy(true);setErr("");
+    if(p.inicial){
+      var datos={nombre:f.nombre,correo:f.correo,rol:f.rol,empresaId:f.empresaId,grupoId:f.grupoId};
+      db.collection("el_usuarios").doc(p.inicial.id).update(datos).then(function(){setAviso("Usuario actualizado correctamente.");setBusy(false);}).catch(function(e){setErr(e.message);setBusy(false);});
+    } else {
+      auth.createUserWithEmailAndPassword(f.correo,f.clave).then(function(cred){
+        var uid=cred.user.uid;
+        return db.collection("el_usuarios").doc(uid).set({nombre:f.nombre,correo:f.correo,rol:f.rol,empresaId:f.empresaId,grupoId:f.grupoId,uid:uid,creadoEn:FSV.serverTimestamp()});
+      }).then(function(){
+        setAviso("Usuario creado correctamente. Ya puede ingresar con su correo y contrasena.");
+        setBusy(false);
+        setF({nombre:"",correo:"",rol:"lider",empresaId:"",grupoId:"",clave:""});
+      }).catch(function(e){
+        var m=e.message||"";
+        if(m.includes("email-already-in-use"))setErr("Este correo ya esta registrado.");
+        else if(m.includes("invalid-email"))setErr("El correo no es valido.");
+        else setErr(m);
+        setBusy(false);
+      });
+    }
+  }
+  function resetClave(){
+    if(!f.correo.trim()){setErr("Escribe el correo primero");return;}
+    auth.sendPasswordResetEmail(f.correo).then(function(){setAviso("Correo de restablecimiento enviado a "+f.correo);}).catch(function(e){setErr(e.message);});
+  }
+  return React.createElement(Modal,{titulo:p.inicial?"Editar usuario":"Nuevo usuario",onClose:p.onClose},
+    React.createElement(Msg,{txt:err}),
+    React.createElement(Msg,{tipo:"ok",txt:aviso}),
+    React.createElement("div",{className:"campo"},React.createElement("label",null,"Nombre completo *"),React.createElement("input",{value:f.nombre,onChange:function(e){set("nombre",e.target.value);}})),
+    React.createElement("div",{className:"campo"},React.createElement("label",null,"Correo *"),React.createElement("input",{type:"email",value:f.correo,onChange:function(e){set("correo",e.target.value);}})),
+    !p.inicial?React.createElement("div",{className:"campo"},
+      React.createElement("label",null,"Contrasena inicial *"),
+      React.createElement("input",{type:"password",value:f.clave,onChange:function(e){set("clave",e.target.value);},placeholder:"Minimo 6 caracteres"}),
+      React.createElement("div",{className:"campo-hint"},"El usuario podra cambiarla despues.")
+    ):React.createElement("div",{style:{marginBottom:16}},
+      React.createElement("button",{className:"btn btn-ghost btn-sm",onClick:resetClave},"Enviar correo para restablecer contrasena")
+    ),
+    React.createElement("div",{className:"campo"},React.createElement("label",null,"Rol *"),React.createElement("select",{value:f.rol,onChange:function(e){set("rol",e.target.value);}},React.createElement("option",{value:"lider"},"Lider"),React.createElement("option",{value:"gerente"},"Gerente"),React.createElement("option",{value:"admin"},"Coach"))),
+    React.createElement("div",{className:"campo"},React.createElement("label",null,"Empresa"),React.createElement("select",{value:f.empresaId,onChange:function(e){set("empresaId",e.target.value);set("grupoId","");}},React.createElement("option",{value:""},"Sin empresa"),p.empresas.map(function(e){return React.createElement("option",{key:e.id,value:e.id},e.nombre);}))),
+    f.rol!=="admin"?React.createElement("div",{className:"campo"},React.createElement("label",null,"Grupo"),React.createElement("select",{value:f.grupoId,onChange:function(e){set("grupoId",e.target.value);}},React.createElement("option",{value:""},"Sin grupo"),gf.map(function(g){return React.createElement("option",{key:g.id,value:g.id},g.nombre);}))):null,
+    React.createElement("div",{className:"modal-footer"},
+      React.createElement("button",{className:"btn btn-secondary",onClick:p.onClose},"Cerrar"),
+      React.createElement("button",{className:"btn btn-primary",onClick:ok,disabled:busy},busy?"Guardando...":"Guardar")
+    )
+  );
+}
+
+function PagSesiones(){
+  var r=useCol("el_sesiones"),rg=useCol("el_grupos"),rl=useCol("el_usuarios",[["rol","==","lider"]]),crud=useCRUD("el_sesiones");
+  var sm=_useState(false),modal=sm[0],setModal=sm[1];
+  var se=_useState(null),edit=se[0],setEdit=se[1];
+  var sv=_useState(null),ver=sv[0],setVer=sv[1];
+  var sa=_useState(null),asig=sa[0],setAsig=sa[1];
+  var sd=_useState(null),del=sd[0],setDel=sd[1];
+  function open(s){setEdit(s||null);setModal(true);}
+  function close(){setModal(false);setEdit(null);}
+  function doAsignar(sId,gId,liderUid,fecha){
+    var s=r.docs.find(function(x){return x.id===sId;});
+    var lider=rl.docs.find(function(x){return x.uid===liderUid||x.id===liderUid;});
+    var doc={sesionId:sId,fecha:fecha||null,titulo:s?s.titulo:"",numero:s?s.numero:0,creadoEn:FSV.serverTimestamp()};
+    if(gId){doc.grupoId=gId;doc.tipo="grupo";}
+    if(liderUid){doc.liderUid=liderUid;doc.tipo="individual";if(lider&&lider.grupoId){doc.grupoId=lider.grupoId;}}
+    return db.collection("el_sesiones_asignadas").add(doc).then(function(){setAsig(null);});
+  }
+  if(!r.listo)return React.createElement(Spin,null);
+  var sorted=r.docs.slice().sort(function(a,b){return a.numero-b.numero;});
+  return React.createElement("div",null,
+    React.createElement("div",{className:"topbar"},React.createElement("div",null,React.createElement("div",{className:"page-title"},"Sesiones"),React.createElement("div",{className:"page-sub"},r.docs.length+" en biblioteca")),React.createElement("button",{className:"btn btn-primary",onClick:function(){open(null);}},"+ Nueva sesion")),
+    React.createElement("div",{className:"alerta alerta-info"},"Crea sesiones aqui y asignalas a grupos con una fecha."),
+    React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:16}},sorted.map(function(s){return React.createElement("div",{key:s.id,className:"sesion-card",onClick:function(){setVer(s);}},React.createElement("div",{className:"sesion-num"},"Sesion "+s.numero+(s.esDobleSesion?" (Doble)":"")),React.createElement("div",{className:"sesion-titulo"},s.titulo),s.resumen?React.createElement("div",{style:{fontSize:12,color:"var(--gris)",marginTop:6}},s.resumen.slice(0,90)):null,React.createElement("div",{style:{marginTop:12,display:"flex",gap:6,flexWrap:"wrap"},onClick:function(e){e.stopPropagation();}},React.createElement("button",{className:"btn btn-ghost btn-sm",onClick:function(){open(s);}},"Editar"),React.createElement("button",{className:"btn btn-primary btn-sm",onClick:function(){setAsig(s);}},"Asignar"),React.createElement("button",{className:"btn btn-secondary btn-sm",onClick:function(){setDel(s.id);}},"Eliminar")));})),
+    r.docs.length===0?React.createElement("div",{className:"vacio"},"Crea tu primera sesion"):null,
+    modal?React.createElement(FormSesion,{inicial:edit,crud:crud,onClose:close}):null,
+    ver?React.createElement(VerSesion,{sesion:ver,onClose:function(){setVer(null);}}):null,
+    asig?React.createElement(FormAsignar,{sesion:asig,grupos:rg.docs,lideres:rl.docs,onAsignar:doAsignar,onClose:function(){setAsig(null);}}):null,
+    del?React.createElement(Confirmar,{msg:"Eliminar esta sesion?",onOk:function(){crud.eliminar(del).then(function(){setDel(null);});},onCancel:function(){setDel(null);}}):null
+  );
+}
+
+function QuillEditorCompacto(p){
+  var ref=React.useRef(null);
+  var qref=React.useRef(null);
+  var idRef=React.useRef("qc-"+Math.random().toString(36).slice(2));
+  _useEffect(function(){
+    if(ref.current&&!qref.current){
+      qref.current=new Quill(ref.current,{theme:"snow",modules:{toolbar:[[{"header":[2,3,false]}],["bold","italic","underline"],[{"list":"ordered"},{"list":"bullet"}],["clean"]]},placeholder:"Escribe el contexto de la pregunta..."});
+      if(p.value){qref.current.root.innerHTML=p.value;}
+      qref.current.on("text-change",function(){p.onChange(qref.current.root.innerHTML);});
+    }
+  },[]);
+  return React.createElement("div",{ref:ref,style:{background:"#fff"}});
+}
+
+function QuillEditor(p){
+  var ref=React.useRef(null);
+  var qref=React.useRef(null);
+  _useEffect(function(){
+    if(ref.current&&!qref.current){
+      qref.current=new Quill(ref.current,{theme:"snow",modules:{toolbar:[[{header:[1,2,3,false]}],["bold","italic","underline"],["blockquote"],[{list:"ordered"},{list:"bullet"}],["clean"]]},placeholder:"Pega o escribe el contenido de la lectura..."});
+      if(p.value){qref.current.root.innerHTML=p.value;}
+      qref.current.on("text-change",function(){p.onChange(qref.current.root.innerHTML);});
+    }
+  },[]);
+  return React.createElement("div",{ref:ref,style:{background:"#fff"}});
+}
+
+function FormSesion(p){
+  var ini=p.inicial||{};
+  var pregIni=Array.isArray(ini.preguntas)&&ini.preguntas.length>0&&typeof ini.preguntas[0]==="object"?ini.preguntas:[];
+  var sf=_useState({numero:ini.numero||"",titulo:ini.titulo||"",resumen:ini.resumen||"",lectura:ini.lectura||"",esDobleSesion:ini.esDobleSesion||false}),f=sf[0],setF=sf[1];
+  var sp=_useState(pregIni.length>0?pregIni:[{contexto:"",pregunta:""}]),pregs=sp[0],setPregs=sp[1];
+  var se=_useState(""),err=se[0],setErr=se[1];
+  var sb=_useState(false),busy=sb[0],setBusy=sb[1];
+  function set(k,v){setF(function(x){return Object.assign({},x,{[k]:v});});}
+  function setPregCampo(i,k,v){setPregs(function(arr){var n=arr.map(function(x,j){return j===i?Object.assign({},x,{[k]:v}):x;});return n;});}
+  function addPreg(){setPregs(function(arr){return arr.concat([{contexto:"",pregunta:""}]);});}
+  function delPreg(i){setPregs(function(arr){return arr.filter(function(_,j){return j!==i;});});}
+  function ok(){
+    if(!f.titulo.trim()){setErr("El titulo es obligatorio");return;}
+    var pregsLimpias=pregs.filter(function(p){return p.pregunta.trim();});
+    setBusy(true);
+    p.crud.guardar(Object.assign({},f,{preguntas:pregsLimpias}),p.inicial?p.inicial.id:null).then(p.onClose).catch(function(e){setErr(e.message);setBusy(false);});
+  }
+  return React.createElement(Modal,{titulo:p.inicial?"Editar sesion":"Nueva sesion",onClose:p.onClose},
+    React.createElement(Msg,{txt:err}),
+    React.createElement("div",{className:"grid2"},
+      React.createElement("div",{className:"campo"},React.createElement("label",null,"Numero"),React.createElement("input",{type:"number",value:f.numero,onChange:function(e){set("numero",+e.target.value);}})),
+      React.createElement("div",{className:"campo",style:{display:"flex",alignItems:"center",gap:8,paddingTop:26}},React.createElement("input",{type:"checkbox",id:"ds",checked:!!f.esDobleSesion,onChange:function(e){set("esDobleSesion",e.target.checked);},style:{width:18,height:18}}),React.createElement("label",{htmlFor:"ds",style:{margin:0,fontWeight:400}},"Doble sesion?"))
+    ),
+    React.createElement("div",{className:"campo"},React.createElement("label",null,"Titulo *"),React.createElement("input",{value:f.titulo,onChange:function(e){set("titulo",e.target.value);},placeholder:"Liderazgo con proposito"})),
+    React.createElement("div",{className:"campo"},React.createElement("label",null,"Resumen"),React.createElement("input",{value:f.resumen,onChange:function(e){set("resumen",e.target.value);}})),
+    React.createElement("div",{className:"campo"},
+      React.createElement("label",null,"Lectura / Contenido"),
+      React.createElement(QuillEditor,{value:f.lectura,onChange:function(v){set("lectura",v);}})
+    ),
+    React.createElement("div",null,
+      React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}},
+        React.createElement("label",{style:{fontWeight:600,fontSize:14}},"Preguntas de reflexion"),
+        React.createElement("button",{className:"btn btn-ghost btn-sm",onClick:addPreg},"+ Agregar pregunta")
+      ),
+      pregs.map(function(preg,i){
+        return React.createElement("div",{key:i,style:{background:"#f9fafb",border:"1px solid var(--gris-cl)",borderRadius:10,padding:16,marginBottom:12}},
+          React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}},
+            React.createElement("span",{style:{fontWeight:600,fontSize:13,color:"var(--verde)"}},"Pregunta "+(i+1)),
+            pregs.length>1?React.createElement("button",{onClick:function(){delPreg(i);},style:{border:"none",background:"none",color:"var(--rojo)",cursor:"pointer",fontSize:18,lineHeight:1}},"x"):null
+          ),
+          React.createElement("div",{className:"campo",style:{marginBottom:10}},
+            React.createElement("label",{style:{fontSize:12}},"Texto de contexto (opcional)"),
+            React.createElement(QuillEditorCompacto,{value:preg.contexto,onChange:function(v){setPregCampo(i,"contexto",v);}})
+          ),
+          React.createElement("div",{className:"campo",style:{marginBottom:0}},
+            React.createElement("label",{style:{fontSize:12}},"Pregunta *"),
+            React.createElement("input",{value:preg.pregunta,onChange:function(e){setPregCampo(i,"pregunta",e.target.value);},placeholder:"Que lograste este mes?"})
+          )
+        );
+      }),
+      pregs.length===0?React.createElement("div",{style:{textAlign:"center",padding:20,color:"var(--gris)",fontSize:14}},"Sin preguntas. Haz clic en Agregar pregunta."):null
+    ),
+    React.createElement("div",{className:"modal-footer"},
+      React.createElement("button",{className:"btn btn-secondary",onClick:p.onClose},"Cancelar"),
+      React.createElement("button",{className:"btn btn-primary",onClick:ok,disabled:busy},busy?"Guardando...":"Guardar")
+    )
+  );
+}
+
+function VerSesion(p){
+  var s=p.sesion;
+  var st=_useState("lectura"),tab=st[0],setTab=st[1];
+  var pregs=Array.isArray(s.preguntas)?s.preguntas:[];
+  var tienePregs=pregs.length>0;
+  return React.createElement(Modal,{titulo:s.titulo,onClose:p.onClose},
+    React.createElement("div",{className:"tabs"},
+      React.createElement("button",{className:"tab "+(tab==="lectura"?"activo":""),onClick:function(){setTab("lectura");}},"Lectura"),
+      tienePregs?React.createElement("button",{className:"tab "+(tab==="preguntas"?"activo":""),onClick:function(){setTab("preguntas");}},"Preguntas ("+pregs.length+")"):null
+    ),
+    tab==="lectura"?React.createElement("div",{className:"lectura-body ql-editor",style:{padding:0},dangerouslySetInnerHTML:{__html:s.lectura||"<p>Sin lectura.</p>"}}):null,
+    tab==="preguntas"?pregs.map(function(preg,i){
+      var texto=typeof preg==="object"?preg.pregunta:preg;
+      var ctx=typeof preg==="object"?preg.contexto:"";
+      return React.createElement("div",{key:i,className:"pregunta-bloque"},
+        ctx?React.createElement("div",{className:"ql-editor",style:{fontSize:13,color:"#4b5563",marginBottom:8,lineHeight:1.5,background:"#f3f4f6",padding:"8px 12px",borderRadius:6,minHeight:"unset"},dangerouslySetInnerHTML:{__html:ctx}}):null,
+        React.createElement("div",{className:"pregunta-texto"},(i+1)+". "+texto)
+      );
+    }):null,
+    React.createElement("div",{className:"modal-footer"},React.createElement("button",{className:"btn btn-secondary",onClick:p.onClose},"Cerrar"))
+  );
+}
+
+function FormAsignar(p){
+  var st=_useState("grupo"),tipo=st[0],setTipo=st[1];
+  var sg=_useState(""),gId=sg[0],setGId=sg[1];
+  var sl=_useState({}),selLideres=sl[0],setSelLideres=sl[1];
+  var sf=_useState(""),fecha=sf[0],setFecha=sf[1];
+  var se=_useState(""),err=se[0],setErr=se[1];
+  var sb=_useState(false),busy=sb[0],setBusy=sb[1];
+  var sg2=_useState(""),filtroGrupo=sg2[0],setFiltroGrupo=sg2[1];
+
+  var lideresFiltrados=filtroGrupo?p.lideres.filter(function(l){return l.grupoId===filtroGrupo;}):p.lideres;
+  var selCount=Object.values(selLideres).filter(Boolean).length;
+
+  function toggleLider(uid){setSelLideres(function(prev){var n=Object.assign({},prev);n[uid]=!n[uid];return n;});}
+  function selTodos(){var n={};lideresFiltrados.forEach(function(l){n[l.uid||l.id]=true;});setSelLideres(n);}
+  function deselTodos(){setSelLideres({});}
+
+  function ok(){
+    if(tipo==="grupo"&&!gId){setErr("Selecciona un grupo");return;}
+    if(tipo==="lider"&&selCount===0){setErr("Selecciona al menos un lider");return;}
+    setBusy(true);
+    if(tipo==="grupo"){
+      p.onAsignar(p.sesion.id,gId,null,fecha).catch(function(e){setErr(e.message);setBusy(false);});
+    } else {
+      var uids=Object.keys(selLideres).filter(function(k){return selLideres[k];});
+      var promesas=uids.map(function(uid){return p.onAsignar(p.sesion.id,null,uid,fecha);});
+      Promise.all(promesas).catch(function(e){setErr(e.message);setBusy(false);});
+    }
+  }
+
+  return React.createElement(Modal,{titulo:"Asignar: "+p.sesion.titulo,onClose:p.onClose},
+    React.createElement(Msg,{txt:err}),
+    React.createElement("div",{style:{display:"flex",gap:8,marginBottom:20}},
+      React.createElement("button",{className:"btn btn-sm "+(tipo==="grupo"?"btn-primary":"btn-secondary"),onClick:function(){setTipo("grupo");setSelLideres({});}},"Por grupo completo"),
+      React.createElement("button",{className:"btn btn-sm "+(tipo==="lider"?"btn-primary":"btn-secondary"),onClick:function(){setTipo("lider");setGId("");}},"Por lideres individuales")
+    ),
+
+    tipo==="grupo"?React.createElement("div",{className:"campo"},
+      React.createElement("label",null,"Grupo *"),
+      React.createElement("select",{value:gId,onChange:function(e){setGId(e.target.value);}},
+        React.createElement("option",{value:""},"Seleccionar grupo..."),
+        p.grupos.map(function(g){return React.createElement("option",{key:g.id,value:g.id},g.nombre);})
+      )
+    ):React.createElement("div",null,
+      React.createElement("div",{className:"campo"},
+        React.createElement("label",null,"Filtrar por grupo"),
+        React.createElement("select",{value:filtroGrupo,onChange:function(e){setFiltroGrupo(e.target.value);setSelLideres({});}},
+          React.createElement("option",{value:""},"Todos los lideres"),
+          p.grupos.map(function(g){return React.createElement("option",{key:g.id,value:g.id},g.nombre);})
+        )
+      ),
+      React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}},
+        React.createElement("label",{style:{fontWeight:500,fontSize:13}},lideresFiltrados.length+" lider(es) — "+selCount+" seleccionado(s)"),
+        React.createElement("div",{style:{display:"flex",gap:6}},
+          React.createElement("button",{className:"btn btn-ghost btn-sm",onClick:selTodos},"Seleccionar todos"),
+          React.createElement("button",{className:"btn btn-secondary btn-sm",onClick:deselTodos},"Limpiar")
+        )
+      ),
+      React.createElement("div",{style:{maxHeight:220,overflowY:"auto",border:"1.5px solid var(--gris-cl)",borderRadius:8,padding:8}},
+        lideresFiltrados.length===0?React.createElement("div",{className:"vacio",style:{padding:20}},"No hay lideres"):
+        lideresFiltrados.map(function(l){
+          var uid=l.uid||l.id;
+          var marcado=!!selLideres[uid];
+          return React.createElement("div",{key:l.id,style:{display:"flex",alignItems:"center",gap:10,padding:"8px 6px",borderRadius:6,cursor:"pointer",background:marcado?"var(--verde-xs)":"transparent"},onClick:function(){toggleLider(uid);}},
+            React.createElement("div",{style:{width:20,height:20,borderRadius:4,border:"2px solid "+(marcado?"var(--verde)":"var(--gris-cl)"),background:marcado?"var(--verde)":"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,color:"#fff",fontSize:13,fontWeight:"bold"}},marcado?"\u2713":null),
+            React.createElement("span",{style:{fontSize:14,fontWeight:marcado?600:400}},l.nombre),
+            l.grupoId?React.createElement("span",{className:"badge badge-gris",style:{fontSize:10}},p.grupos.find(function(g){return g.id===l.grupoId;})?p.grupos.find(function(g){return g.id===l.grupoId;}).nombre:""):null
+          );
+        })
+      )
+    ),
+
+    React.createElement("div",{className:"campo",style:{marginTop:16}},
+      React.createElement("label",null,"Fecha de la sesion"),
+      React.createElement("input",{type:"date",value:fecha,onChange:function(e){setFecha(e.target.value);}})
+    ),
+    React.createElement("div",{className:"modal-footer"},
+      React.createElement("button",{className:"btn btn-secondary",onClick:p.onClose},"Cancelar"),
+      React.createElement("button",{className:"btn btn-primary",onClick:ok,disabled:busy},
+        busy?"Asignando...":(tipo==="lider"&&selCount>0?"Asignar a "+selCount+" lider(es)":"Asignar")
+      )
+    )
+  );
+}
+
+function PagAsignaciones(){
+  var rs=useCol("el_sesiones");
+  var rg=useCol("el_grupos");
+  var rl=useCol("el_usuarios",[["rol","==","lider"]]);
+  var ra=useCol("el_sesiones_asignadas");
+  var sm=_useState(false),modal=sm[0],setModal=sm[1];
+  var ss=_useState(null),sesionSel=ss[0],setSesionSel=ss[1];
+  var sd=_useState(null),del=sd[0],setDel=sd[1];
+  var sf=_useState(""),filtroSesion=sf[0],setFiltroSesion=sf[1];
+
+  function nomGrupo(id){var x=rg.docs.find(function(g){return g.id===id;});return x?x.nombre:null;}
+  function nomLider(uid){var x=rl.docs.find(function(l){return l.uid===uid||l.id===uid;});return x?x.nombre:null;}
+  function nomSesion(id){var x=rs.docs.find(function(s){return s.id===id;});return x?x.titulo:id;}
+
+  function abrirAsignar(sesion){setSesionSel(sesion);setModal(true);}
+
+  function doAsignar(sId,gId,liderUid,fecha){
+    var s=rs.docs.find(function(x){return x.id===sId;});
+    var lider=rl.docs.find(function(x){return x.uid===liderUid||x.id===liderUid;});
+    var doc={sesionId:sId,fecha:fecha||null,titulo:s?s.titulo:"",numero:s?s.numero:0,creadoEn:FSV.serverTimestamp()};
+    if(gId){doc.grupoId=gId;doc.tipo="grupo";}
+    if(liderUid){doc.liderUid=liderUid;doc.tipo="individual";if(lider&&lider.grupoId)doc.grupoId=lider.grupoId;}
+    return db.collection("el_sesiones_asignadas").add(doc).then(function(){setModal(false);setSesionSel(null);});
+  }
+
+  function eliminar(){db.collection("el_sesiones_asignadas").doc(del).delete().then(function(){setDel(null);});}
+
+  var asigFiltradas=filtroSesion?ra.docs.filter(function(a){return a.sesionId===filtroSesion;}):ra.docs;
+
+  if(!rs.listo||!rg.listo||!rl.listo||!ra.listo)return React.createElement(Spin,null);
+
+  return React.createElement("div",null,
+    React.createElement("div",{className:"topbar"},
+      React.createElement("div",null,
+        React.createElement("div",{className:"page-title"},"Asignaciones de sesiones"),
+        React.createElement("div",{className:"page-sub"},ra.docs.length+" asignacion(es) en total")
+      )
+    ),
+
+    React.createElement("div",{className:"tarjeta"},
+      React.createElement("div",{className:"tarjeta-titulo"},"Asignar una sesion"),
+      React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:12}},
+        rs.docs.slice().sort(function(a,b){return a.numero-b.numero;}).map(function(s){
+          return React.createElement("div",{key:s.id,style:{border:"1.5px solid var(--gris-cl)",borderRadius:10,padding:16,background:"var(--crema)"}},
+            React.createElement("div",{style:{fontSize:11,color:"var(--gris)",textTransform:"uppercase",letterSpacing:1}},"Sesion "+s.numero),
+            React.createElement("div",{style:{fontWeight:600,fontSize:14,margin:"4px 0 12px"}},s.titulo),
+            React.createElement("button",{className:"btn btn-primary btn-sm",style:{width:"100%",justifyContent:"center"},onClick:function(){abrirAsignar(s);}},"\uD83D\uDCCC Asignar sesion")
+          );
+        })
+      ),
+      rs.docs.length===0?React.createElement("div",{className:"vacio"},"No hay sesiones creadas aun"):null
+    ),
+
+    React.createElement("div",{className:"tarjeta"},
+      React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}},
+        React.createElement("div",{className:"tarjeta-titulo",style:{marginBottom:0}},"Asignaciones activas"),
+        React.createElement("div",{className:"campo",style:{marginBottom:0,minWidth:200}},
+          React.createElement("select",{value:filtroSesion,onChange:function(e){setFiltroSesion(e.target.value);}},
+            React.createElement("option",{value:""},"Todas las sesiones"),
+            rs.docs.map(function(s){return React.createElement("option",{key:s.id,value:s.id},"Sesion "+s.numero+": "+s.titulo);})
+          )
+        )
+      ),
+      React.createElement("table",{className:"tabla"},
+        React.createElement("thead",null,
+          React.createElement("tr",null,
+            React.createElement("th",null,"Sesion"),
+            React.createElement("th",null,"Asignada a"),
+            React.createElement("th",null,"Tipo"),
+            React.createElement("th",null,"Fecha"),
+            React.createElement("th",null,"Accion")
+          )
+        ),
+        React.createElement("tbody",null,
+          asigFiltradas.map(function(a){
+            var destino=a.tipo==="individual"?nomLider(a.liderUid):nomGrupo(a.grupoId);
+            return React.createElement("tr",{key:a.id},
+              React.createElement("td",null,React.createElement("strong",null,a.titulo||nomSesion(a.sesionId))),
+              React.createElement("td",null,destino||"—"),
+              React.createElement("td",null,
+                React.createElement("span",{className:"badge "+(a.tipo==="individual"?"badge-dorado":"badge-verde")},
+                  a.tipo==="individual"?"Individual":"Grupo"
+                )
+              ),
+              React.createElement("td",null,a.fecha||"Sin fecha"),
+              React.createElement("td",null,
+                React.createElement("button",{className:"btn btn-peligro btn-sm",onClick:function(){setDel(a.id);}},"\uD83D\uDDD1 Eliminar")
+              )
+            );
+          })
+        )
+      ),
+      asigFiltradas.length===0?React.createElement("div",{className:"vacio"},"No hay asignaciones"):null
+    ),
+
+    modal&&sesionSel?React.createElement(FormAsignar,{sesion:sesionSel,grupos:rg.docs,lideres:rl.docs,onAsignar:doAsignar,onClose:function(){setModal(false);setSesionSel(null);}}):null,
+    del?React.createElement(Confirmar,{msg:"Eliminar esta asignacion?",onOk:eliminar,onCancel:function(){setDel(null);}}):null
+  );
+}
+
+function PagHabitosAdmin(){
+  var ru=useCol("el_usuarios",[["rol","==","lider"]]);
+  var r=useCol("el_habitos_asignados"),crud=useCRUD("el_habitos_asignados");
+  var sm=_useState(false),modal=sm[0],setModal=sm[1];
+  var se=_useState(null),edit=se[0],setEdit=se[1];
+  var sd=_useState(null),del=sd[0],setDel=sd[1];
+  var sf=_useState(""),filtro=sf[0],setFiltro=sf[1];
+  function nomL(uid){var x=ru.docs.find(function(u){return u.uid===uid||u.id===uid;});return x?x.nombre:uid;}
+  function open(h){setEdit(h||null);setModal(true);}
+  function close(){setModal(false);setEdit(null);}
+  var filtrados=filtro?r.docs.filter(function(h){return h.liderUid===filtro;}):r.docs;
+  if(!r.listo)return React.createElement(Spin,null);
+  return React.createElement("div",null,
+    React.createElement("div",{className:"topbar"},React.createElement("div",null,React.createElement("div",{className:"page-title"},"Habitos"),React.createElement("div",{className:"page-sub"},r.docs.length+" asignado(s)")),React.createElement("button",{className:"btn btn-primary",onClick:function(){open(null);}},"+ Asignar habito")),
+    React.createElement("div",{className:"campo",style:{maxWidth:280,marginBottom:16}},React.createElement("select",{value:filtro,onChange:function(e){setFiltro(e.target.value);}},React.createElement("option",{value:""},"Todos los lideres"),ru.docs.map(function(u){return React.createElement("option",{key:u.id,value:u.uid||u.id},u.nombre);}))),
+    React.createElement("div",{className:"tarjeta"},
+      React.createElement("table",{className:"tabla"},React.createElement("thead",null,React.createElement("tr",null,React.createElement("th",null,"Habito"),React.createElement("th",null,"Lider"),React.createElement("th",null,"Frecuencia"),React.createElement("th",null,"Hora"),React.createElement("th",null,"Activo"),React.createElement("th",null,"Acciones"))),React.createElement("tbody",null,filtrados.map(function(h){return React.createElement("tr",{key:h.id},React.createElement("td",null,React.createElement("strong",null,h.descripcion)),React.createElement("td",null,nomL(h.liderUid)),React.createElement("td",null,React.createElement("span",{className:"badge badge-verde"},h.frecuencia||"Diario")),React.createElement("td",null,h.hora||"—"),React.createElement("td",null,h.activo!==false?"Si":"No"),React.createElement(BtnAcciones,{onEdit:function(){open(h);},onDel:function(){setDel(h.id);}}));})))
+      ,filtrados.length===0?React.createElement("div",{className:"vacio"},"Sin habitos asignados"):null
+    ),
+    modal?React.createElement(FormHabito,{inicial:edit,lideres:ru.docs,crud:crud,onClose:close}):null,
+    del?React.createElement(Confirmar,{msg:"Eliminar este habito?",onOk:function(){crud.eliminar(del).then(function(){setDel(null);});},onCancel:function(){setDel(null);}}):null
+  );
+}
+
+function FormHabito(p){
+  var ini=p.inicial||{};
+  var sf=_useState({descripcion:ini.descripcion||"",liderUid:ini.liderUid||"",frecuencia:ini.frecuencia||"Diario",hora:ini.hora||"07:00",activo:ini.activo!==false}),f=sf[0],setF=sf[1];
+  var se=_useState(""),err=se[0],setErr=se[1];
+  var sb=_useState(false),busy=sb[0],setBusy=sb[1];
+  function set(k,v){setF(function(x){return Object.assign({},x,{[k]:v});});}
+  function ok(){if(!f.descripcion.trim()||!f.liderUid){setErr("Descripcion y lider son obligatorios");return;}setBusy(true);p.crud.guardar(f,p.inicial?p.inicial.id:null).then(p.onClose).catch(function(e){setErr(e.message);setBusy(false);});}
+  return React.createElement(FormBase,{titulo:p.inicial?"Editar habito":"Asignar habito",onClose:p.onClose,onOk:ok,busy:busy,err:err},
+    React.createElement("div",{className:"campo"},React.createElement("label",null,"Lider *"),React.createElement("select",{value:f.liderUid,onChange:function(e){set("liderUid",e.target.value);}},React.createElement("option",{value:""},"Seleccionar lider..."),p.lideres.map(function(l){return React.createElement("option",{key:l.id,value:l.uid||l.id},l.nombre);}))),
+    React.createElement("div",{className:"campo"},React.createElement("label",null,"Descripcion *"),React.createElement("textarea",{value:f.descripcion,onChange:function(e){set("descripcion",e.target.value);},placeholder:"Ej: Leer 15 min al dia sobre liderazgo",style:{minHeight:80}})),
+    React.createElement("div",{className:"grid2"},
+      React.createElement("div",{className:"campo"},React.createElement("label",null,"Frecuencia"),React.createElement("select",{value:f.frecuencia,onChange:function(e){set("frecuencia",e.target.value);}},React.createElement("option",null,"Diario"),React.createElement("option",null,"3 veces por semana"),React.createElement("option",null,"Semanal"))),
+      React.createElement("div",{className:"campo"},React.createElement("label",null,"Hora"),React.createElement("input",{type:"time",value:f.hora,onChange:function(e){set("hora",e.target.value);}}))
+    ),
+    React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:16}},React.createElement("input",{type:"checkbox",id:"act",checked:!!f.activo,onChange:function(e){set("activo",e.target.checked);},style:{width:18,height:18}}),React.createElement("label",{htmlFor:"act",style:{fontSize:14}},"Habito activo"))
+  );
+}
+
+function PagMisSesiones(p){
+  var u=p.usuario;
+  var r1=useCol("el_sesiones_asignadas",[["grupoId","==",u.grupoId||"__N__"],["tipo","==","grupo"]]);
+  var r2=useCol("el_sesiones_asignadas",[["liderUid","==",u.uid]]);
+  var sv=_useState(null),ver=sv[0],setVer=sv[1];
+  var idsVistos={};
+  var todasSesiones=r1.docs.concat(r2.docs).filter(function(s){if(idsVistos[s.id])return false;idsVistos[s.id]=true;return true;});
+  var sorted=todasSesiones.slice().sort(function(a,b){return a.numero-b.numero;});
+  if(!r1.listo||!r2.listo)return React.createElement(Spin,null);
+  return React.createElement("div",null,
+    React.createElement("div",{className:"topbar"},React.createElement("div",null,React.createElement("div",{className:"page-title"},"Mis sesiones"),React.createElement("div",{className:"page-sub"},sorted.length+" sesion(es)"))),
+    sorted.map(function(sa){return React.createElement("div",{key:sa.id,className:"sesion-card",onClick:function(){setVer(sa.sesionId);}},
+      React.createElement("div",{className:"sesion-num"},"Sesion "+sa.numero),
+      React.createElement("div",{className:"sesion-titulo"},sa.titulo),
+      React.createElement("div",{className:"sesion-fecha"},sa.fecha||"Sin fecha"),
+      React.createElement("div",{style:{marginTop:8,display:"flex",gap:6,alignItems:"center"}},
+        React.createElement("span",{className:"badge badge-verde"},"Abrir sesion"),
+        sa.liderUid?React.createElement("span",{className:"badge badge-dorado"},"Individual"):React.createElement("span",{className:"badge badge-gris"},"Grupo")
+      )
+    );}),
+    sorted.length===0?React.createElement("div",{className:"vacio"},"Aun no tienes sesiones asignadas"):null,
+    ver?React.createElement(DetalleSesionLider,{sesionId:ver,usuario:u,onClose:function(){setVer(null);}}):null
+  );
+}
+
+function DetalleSesionLider(p){
+  var u=p.usuario;
+  var ss=_useState(null),sesion=ss[0],setSesion=ss[1];
+  var st=_useState("lectura"),tab=st[0],setTab=st[1];
+  var sr=_useState({}),resps=sr[0],setResps=sr[1];
+  var si=_useState(null),rdocId=si[0],setRdocId=si[1];
+  var sb=_useState(false),busy=sb[0],setBusy=sb[1];
+  var so=_useState(""),okMsg=so[0],setOkMsg=so[1];
+  _useEffect(function(){
+    db.collection("el_sesiones").doc(p.sesionId).get().then(function(d){if(d.exists)setSesion(Object.assign({id:d.id},d.data()));});
+    db.collection("el_respuestas").where("sesionId","==",p.sesionId).where("liderUid","==",u.uid).get().then(function(snap){if(!snap.empty){setResps(snap.docs[0].data().respuestas||{});setRdocId(snap.docs[0].id);}});
+  },[p.sesionId]);
+  function guardar(){
+    setBusy(true);
+    var data={sesionId:p.sesionId,liderUid:u.uid,respuestas:resps,actualizadoEn:FSV.serverTimestamp()};
+    var pr=rdocId?db.collection("el_respuestas").doc(rdocId).update(data):db.collection("el_respuestas").add(data).then(function(ref){setRdocId(ref.id);});
+    pr.then(function(){setBusy(false);setOkMsg("Respuestas guardadas");setTimeout(function(){setOkMsg("");},3000);});
+  }
+  if(!sesion)return React.createElement(Modal,{titulo:"Cargando...",onClose:p.onClose},React.createElement(Spin,null));
+  var pregs=Array.isArray(sesion.preguntas)?sesion.preguntas:[];
+  return React.createElement(Modal,{titulo:sesion.titulo,onClose:p.onClose},
+    React.createElement("div",{className:"tabs"},
+      React.createElement("button",{className:"tab "+(tab==="lectura"?"activo":""),onClick:function(){setTab("lectura");}},"Lectura"),
+      pregs.length>0?React.createElement("button",{className:"tab "+(tab==="preguntas"?"activo":""),onClick:function(){setTab("preguntas");}},"Preguntas ("+pregs.length+")"):null
+    ),
+    React.createElement(Msg,{tipo:"ok",txt:okMsg}),
+    tab==="lectura"?React.createElement("div",{className:"lectura-body ql-editor",style:{padding:0},dangerouslySetInnerHTML:{__html:sesion.lectura||"<p>Sin lectura para esta sesion.</p>"}}):null,
+    tab==="preguntas"?React.createElement("div",null,
+      pregs.map(function(preg,i){
+        var texto=typeof preg==="object"?preg.pregunta:preg;
+        var ctx=typeof preg==="object"?preg.contexto:"";
+        return React.createElement("div",{key:i,className:"pregunta-bloque"},
+          ctx?React.createElement("div",{className:"ql-editor",style:{fontSize:13,color:"#4b5563",marginBottom:8,lineHeight:1.6,background:"#f3f4f6",padding:"8px 12px",borderRadius:6,minHeight:"unset"},dangerouslySetInnerHTML:{__html:ctx}}):null,
+          React.createElement("div",{className:"pregunta-texto"},(i+1)+". "+texto),
+          React.createElement("textarea",{className:"respuesta-box",placeholder:"Escribe tu respuesta aqui...",value:resps[i]||"",onChange:function(e){var v=e.target.value;setResps(function(r){return Object.assign({},r,{[i]:v});}); }})
+        );
+      }),
+      React.createElement("div",{style:{textAlign:"right",marginTop:12}},
+        React.createElement("button",{className:"btn btn-primary",onClick:guardar,disabled:busy},busy?"Guardando...":"Guardar respuestas")
+      )
+    ):null,
+    React.createElement("div",{className:"modal-footer"},React.createElement("button",{className:"btn btn-secondary",onClick:p.onClose},"Cerrar"))
+  );
+}
+
+function PagMisHabitos(p){
+  var u=p.usuario,hoy=fechaHoy();
+  var r1=useCol("el_habitos_asignados",[["liderUid","==",u.uid]]);
+  var r2=useCol("el_habitos_dia",[["liderUid","==",u.uid],["fecha","==",hoy]]);
+  function estH(id){return r2.docs.find(function(c){return c.habitoId===id;});}
+  var activos=r1.docs.filter(function(h){return h.activo!==false;});
+  var comp=r2.docs.filter(function(c){return c.completado;}).length;
+  var pct=activos.length?Math.round(comp/activos.length*100):0;
+  function toggle(h){var est=estH(h.id);if(est){db.collection("el_habitos_dia").doc(est.id).update({completado:!est.completado});}else{db.collection("el_habitos_dia").add({habitoId:h.id,liderUid:u.uid,fecha:hoy,completado:true,creadoEn:FSV.serverTimestamp()});}}
+  if(!r1.listo)return React.createElement(Spin,null);
+  return React.createElement("div",null,
+    React.createElement("div",{className:"topbar"},React.createElement("div",null,React.createElement("div",{className:"page-title"},"Mis habitos"),React.createElement("div",{className:"page-sub"},new Date().toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long"})))),
+    React.createElement("div",{className:"tarjeta"},
+      React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}},React.createElement("span",{style:{fontWeight:600}},"Progreso de hoy"),React.createElement("span",{style:{fontWeight:700,color:"var(--verde)",fontSize:22}},pct+"%")),
+      React.createElement("div",{className:"barra-wrap"},React.createElement("div",{className:"barra-fill",style:{width:pct+"%"}})),
+      React.createElement("div",{style:{fontSize:12,color:"var(--gris)",marginTop:6}},comp+" de "+activos.length+" completados")
+    ),
+    React.createElement("div",{className:"tarjeta"},
+      React.createElement("div",{className:"tarjeta-titulo"},"Lista de habitos"),
+      activos.map(function(h){var est=estH(h.id);var m=est&&est.completado;return React.createElement("div",{key:h.id,className:"habito-item"},React.createElement("div",{className:"habito-check "+(m?"marcado":""),onClick:function(){toggle(h);}},m?"\u2713":null),React.createElement("div",{className:"habito-texto"},React.createElement("div",{style:{fontWeight:m?400:500,textDecoration:m?"line-through":"none",color:m?"var(--gris)":"var(--carbon)"}},h.descripcion),React.createElement("div",{style:{fontSize:11,color:"var(--gris)",marginTop:2}},(h.hora||"Sin hora")+" - "+(h.frecuencia||"Diario"))),m?React.createElement("span",{style:{fontSize:20}},"\u2B50"):null);}),
+      activos.length===0?React.createElement("div",{className:"vacio"},"Tu coach aun no ha asignado habitos"):null
+    ),
+    pct===100&&activos.length>0?React.createElement("div",{style:{textAlign:"center",padding:"28px",background:"linear-gradient(135deg,#d8f3dc,#b7e4c7)",borderRadius:"var(--radio)"}},React.createElement("div",{style:{fontSize:48}},"\uD83C\uDF89"),React.createElement("div",{style:{fontWeight:700,color:"var(--verde)",fontSize:20,marginTop:8}},"Completaste todos tus habitos hoy!"),React.createElement("div",{style:{color:"#2d6a4f",fontSize:14,marginTop:4}},"Eso es consistencia. Sigue asi!")):null
+  );
+}
+
+function PagMiGrupo(p){
+  var u=p.usuario;
+  var r=useCol("el_usuarios",[["grupoId","==",u.grupoId||"__N__"]]);
+  var lideres=r.docs.filter(function(x){return x.rol==="lider";});
+  return React.createElement("div",null,
+    React.createElement("div",{className:"topbar"},React.createElement("div",null,React.createElement("div",{className:"page-title"},"Mi grupo"))),
+    React.createElement("div",{className:"tarjeta"},
+      React.createElement("div",{className:"tarjeta-titulo"},"Lideres del grupo"),
+      React.createElement("table",{className:"tabla"},React.createElement("thead",null,React.createElement("tr",null,React.createElement("th",null,"Nombre"),React.createElement("th",null,"Correo"))),React.createElement("tbody",null,lideres.map(function(l){return React.createElement("tr",{key:l.id},React.createElement("td",null,l.nombre),React.createElement("td",{style:{color:"var(--gris)"}},l.correo));}))),
+      lideres.length===0?React.createElement("div",{className:"vacio"},"Sin lideres aun"):null
+    )
+  );
+}
+
+function App(){
+  var su=_useState(null),usuario=su[0],setUsuario=su[1];
+  var si=_useState(true),ini=si[0],setIni=si[1];
+  var sp=_useState("inicio"),pag=sp[0],setPag=sp[1];
+  var ss=_useState(false),sideOpen=ss[0],setSideOpen=ss[1];
+  _useEffect(function(){
+    var unsub=auth.onAuthStateChanged(function(user){
+      if(user){
+        db.collection("el_usuarios").doc(user.uid).get().then(function(snap){
+          if(snap.exists)setUsuario(Object.assign({uid:user.uid},snap.data()));
+          else setUsuario(null);
+          setIni(false);
+        }).catch(function(){setUsuario(null);setIni(false);});
+      }else{setUsuario(null);setIni(false);}
+    });
+    return unsub;
+  },[]);
+  if(ini)return React.createElement("div",{className:"carga-full"},React.createElement("div",{style:{fontSize:52,marginBottom:16}},"\uD83C\uDF31"),React.createElement("div",{style:{fontFamily:'"Playfair Display",serif',fontSize:24,color:"var(--verde)"}},"Escuela de Lideres"),React.createElement("div",{className:"spinner",style:{marginTop:24}}));
+  if(!usuario)return React.createElement(Login,{onLogin:function(u){setUsuario(u);setPag("inicio");}});
+  function renderPag(){
+    var r=usuario.rol;
+    if(pag==="inicio")return r==="admin"?React.createElement(InicioAdmin,{usuario:usuario}):r==="gerente"?React.createElement(InicioGerente,{usuario:usuario}):React.createElement(InicioLider,{usuario:usuario});
+    if(pag==="empresas")return React.createElement(PagEmpresas,null);
+    if(pag==="grupos")return React.createElement(PagGrupos,null);
+    if(pag==="usuarios")return React.createElement(PagUsuarios,null);
+    if(pag==="sesiones")return React.createElement(PagSesiones,null);
+    if(pag==="habitos-admin")return React.createElement(PagHabitosAdmin,null);
+    if(pag==="asignaciones")return React.createElement(PagAsignaciones,null);
+    if(pag==="mis-sesiones")return React.createElement(PagMisSesiones,{usuario:usuario});
+    if(pag==="mis-habitos")return React.createElement(PagMisHabitos,{usuario:usuario});
+    if(pag==="mi-grupo")return React.createElement(PagMiGrupo,{usuario:usuario});
+    return React.createElement(InicioLider,{usuario:usuario});
+  }
+  return React.createElement("div",{className:"shell"},
+    React.createElement("button",{className:"menu-toggle",onClick:function(){setSideOpen(function(o){return !o;});},style:{display:"block"}},"☰"),
+    sideOpen?React.createElement("div",{style:{position:"fixed",inset:0,background:"rgba(0,0,0,.4)",zIndex:99},onClick:function(){setSideOpen(false);}}):null,
+    React.createElement(Sidebar,{usuario:usuario,pag:pag,setPag:function(p){setPag(p);setSideOpen(false);},open:sideOpen}),
+    React.createElement("main",{className:"main"},renderPag())
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App,null));
+
+</script>
+</body>
+</html>
