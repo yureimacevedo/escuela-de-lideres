@@ -108,6 +108,8 @@ body{font-family:Inter,sans-serif;background:var(--crema);color:var(--carbon);mi
 .ql-editor{min-height:180px;line-height:1.8;}
 .ql-editor:focus{outline:none;}
 .menu-toggle{display:none}
+.footer-app{text-align:center;padding:16px;font-size:11px;color:var(--gris);border-top:1px solid var(--gris-cl);margin-top:32px;line-height:1.6}
+.footer-app strong{color:var(--verde)}
 @media(max-width:768px){
 .sidebar{transform:translateX(-100%)}
 .sidebar.open{transform:translateX(0)}
@@ -240,7 +242,16 @@ function Login(p){
         React.createElement("div",{className:"campo"},React.createElement("label",null,"Contrasena"),React.createElement("input",{type:"password",value:pass,onChange:function(e){setPass(e.target.value);},placeholder:"........",required:true})),
         React.createElement("button",{className:"btn btn-primary",style:{width:"100%",padding:"12px",justifyContent:"center",marginTop:8},disabled:busy},busy?"Ingresando...":"Ingresar")
       ),
-      React.createElement("p",{style:{textAlign:"center",marginTop:20,fontSize:12,color:"#9ca3af"}},"Problemas para ingresar? Contacta a tu coach.")
+      React.createElement("p",{style:{textAlign:"center",marginTop:20,fontSize:12,color:"#9ca3af"}},"Problemas para ingresar? Contacta a tu coach."),
+      React.createElement("div",{style:{marginTop:24,paddingTop:16,borderTop:"1px solid #f3f4f6",textAlign:"center"}},
+        React.createElement("p",{style:{fontSize:11,color:"#9ca3af",lineHeight:1.7}},
+          React.createElement("strong",{style:{color:"var(--verde)",display:"block",marginBottom:4}},"Escuela de Líderes"),
+          "Software de uso privado y exclusivo.",React.createElement("br",null),
+          "© "+new Date().getFullYear()+" Yureima Acevedo Arango.",React.createElement("br",null),
+          "Todos los derechos reservados.",React.createElement("br",null),
+          "Prohibida su reproducción o distribución sin autorización."
+        )
+      )
     )
   );
 }
@@ -255,13 +266,13 @@ function Sidebar(p){
   var u=p.usuario,esA=u.rol==="admin",esG=u.rol==="gerente";
   function ni(icon,label,id){return React.createElement(NavItem,{key:id,icon:icon,label:label,activo:p.pag===id,onClick:function(){p.setPag(id);}});}
   var items=[ni("\uD83C\uDFE0","Inicio","inicio")];
-  if(esA){items.push(React.createElement("div",{key:"sg",className:"nav-section"},"Gestion"));items.push(ni("\uD83C\uDFE2","Empresas","empresas"));items.push(ni("\uD83D\uDC65","Grupos","grupos"));items.push(ni("\uD83D\uDC64","Usuarios","usuarios"));items.push(React.createElement("div",{key:"sp",className:"nav-section"},"Programa"));items.push(ni("\uD83D\uDCDA","Sesiones","sesiones"));items.push(ni("\uD83D\uDCCB","Asignaciones","asignaciones"));items.push(ni("\u2705","Habitos","habitos-admin"));}
-  if(esG){items.push(React.createElement("div",{key:"se",className:"nav-section"},"Mi empresa"));items.push(ni("\uD83D\uDC65","Mi grupo","mi-grupo"));}
+  if(esA){items.push(React.createElement("div",{key:"sg",className:"nav-section"},"Gestion"));items.push(ni("\uD83C\uDFE2","Empresas","empresas"));items.push(ni("\uD83D\uDC65","Grupos","grupos"));items.push(ni("\uD83D\uDC64","Usuarios","usuarios"));items.push(React.createElement("div",{key:"sp",className:"nav-section"},"Programa"));items.push(ni("\uD83D\uDCDA","Sesiones","sesiones"));items.push(ni("\uD83D\uDCCB","Asignaciones","asignaciones"));items.push(ni("\u2705","Habitos","habitos-admin"));items.push(React.createElement("div",{key:"sr",className:"nav-section"},"Reportes"));items.push(ni("\uD83D\uDCCA","Reportes","reportes"));}
+  if(esG){items.push(React.createElement("div",{key:"se",className:"nav-section"},"Mi empresa"));items.push(ni("\uD83D\uDC65","Mi grupo","mi-grupo"));items.push(ni("\uD83D\uDCCA","Reporte grupo","reportes"));}
   if(!esA&&!esG){items.push(React.createElement("div",{key:"sm",className:"nav-section"},"Mi proceso"));items.push(ni("\uD83D\uDCD6","Mis sesiones","mis-sesiones"));items.push(ni("\u2705","Mis habitos","mis-habitos"));}
   return React.createElement("div",{className:"sidebar "+(p.open?"open":"")},
     React.createElement("div",{className:"sidebar-logo"},
       React.createElement("div",{style:{fontSize:28,marginBottom:6}},"\uD83C\uDF31"),
-      React.createElement("div",{className:"nombre"},"Escuela de Lideres"),
+      React.createElement("div",{className:"nombre"},"Escuela de Líderes"),
       React.createElement("span",{className:"rol-badge"},esA?"Coach":esG?"Gerente":"Lider"),
       React.createElement("div",{style:{fontSize:12,color:"rgba(255,255,255,.5)",marginTop:6}},u.nombre)
     ),
@@ -984,6 +995,190 @@ function PagMiGrupo(p){
   );
 }
 
+function PagReportes(p){
+  var u=p.usuario;
+  var esAdmin=u.rol==="admin";
+  var rg=useCol("el_grupos");
+  var ru=useCol("el_usuarios");
+  var ra=useCol("el_sesiones_asignadas");
+  var rr=useCol("el_respuestas");
+  var rh=useCol("el_habitos_asignados");
+  var rd=useCol("el_habitos_dia");
+  var rs=useCol("el_sesiones");
+
+  var sg=_useState(esAdmin?"":u.grupoId||""),grupoSel=sg[0],setGrupoSel=sg[1];
+  var sger=_useState(""),gerenteSel=sger[0],setGerenteSel=sger[1];
+  var sl=_useState(null),liderSel=sl[0],setLiderSel=sl[1];
+  var sm=_useState(getMesActual()),mes=sm[0],setMes=sm[1];
+
+  function getMesActual(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");}
+
+  var lideres=ru.docs.filter(function(x){return x.rol==="lider";});
+  var gerentes=ru.docs.filter(function(x){return x.rol==="gerente";});
+
+  // Si el usuario es gerente, solo ve su grupo — sin posibilidad de cambiar
+  var gruposFiltrados=esAdmin?rg.docs:rg.docs.filter(function(g){return g.id===u.grupoId;});
+
+  // Si selecciona gerente, filtra al grupo de ese gerente
+  var grupoEfectivo=grupoSel;
+  if(esAdmin&&gerenteSel){
+    var gerenteDoc=gerentes.find(function(g){return g.id===gerenteSel;});
+    if(gerenteDoc&&gerenteDoc.grupoId) grupoEfectivo=gerenteDoc.grupoId;
+  }
+
+  var lideresFiltrados=grupoEfectivo?lideres.filter(function(l){return l.grupoId===grupoEfectivo;}):lideres;
+
+  function sesionesLider(uid){
+    return ra.docs.filter(function(a){
+      if(a.liderUid===uid) return true;
+      if(a.grupoId){var lider=lideres.find(function(l){return l.uid===uid||l.id===uid;});return lider&&lider.grupoId===a.grupoId;}
+      return false;
+    });
+  }
+  function respuestasLider(uid){return rr.docs.filter(function(r){return r.liderUid===uid;});}
+  function habitosLider(uid){return rh.docs.filter(function(h){return h.liderUid===uid&&h.activo!==false;});}
+  function pctHabitos(uid){
+    var habs=habitosLider(uid);
+    if(!habs.length) return null;
+    var diasMes=new Date(new Date(mes+"-01").getFullYear(),new Date(mes+"-01").getMonth()+1,0).getDate();
+    var posible=habs.length*diasMes;
+    var hechos=rd.docs.filter(function(d){return d.liderUid===uid&&d.fecha&&d.fecha.startsWith(mes)&&d.completado;}).length;
+    return Math.round(hechos/posible*100);
+  }
+
+  function imprimir(){window.print();}
+  var lider=liderSel?lideres.find(function(l){return l.id===liderSel;}):null;
+  var nomGrupoSel=grupoEfectivo?(rg.docs.find(function(g){return g.id===grupoEfectivo;})||{}).nombre||"":"Todos los grupos";
+
+  if(!rg.listo||!ru.listo||!ra.listo||!rr.listo||!rh.listo||!rd.listo||!rs.listo) return React.createElement(Spin,null);
+
+  return React.createElement("div",null,
+    React.createElement("style",null,"@media print{.no-print{display:none!important}.main{margin:0;padding:0}.sidebar{display:none}.menu-toggle{display:none}}"),
+
+    React.createElement("div",{className:"topbar no-print"},
+      React.createElement("div",null,
+        React.createElement("div",{className:"page-title"},"Reportes"),
+        React.createElement("div",{className:"page-sub"},"Avance por lider y grupo")
+      ),
+      React.createElement("button",{className:"btn btn-primary",onClick:imprimir},"\uD83D\uDDA8 Imprimir / PDF")
+    ),
+
+    React.createElement("div",{className:"tarjeta no-print"},
+      React.createElement("div",{className:"tarjeta-titulo"},"Filtros"),
+      React.createElement("div",{className:"grid2"},
+        esAdmin?React.createElement("div",{className:"campo"},
+          React.createElement("label",null,"Gerente"),
+          React.createElement("select",{value:gerenteSel,onChange:function(e){setGerenteSel(e.target.value);setGrupoSel("");setLiderSel(null);}},
+            React.createElement("option",{value:""},"Seleccionar gerente..."),
+            gerentes.map(function(g){
+              var grp=rg.docs.find(function(x){return x.id===g.grupoId;});
+              return React.createElement("option",{key:g.id,value:g.id},g.nombre+(grp?" ("+grp.nombre+")":""));
+            })
+          )
+        ):null,
+        esAdmin&&!gerenteSel?React.createElement("div",{className:"campo"},
+          React.createElement("label",null,"O filtrar por grupo"),
+          React.createElement("select",{value:grupoSel,onChange:function(e){setGrupoSel(e.target.value);setGerenteSel("");setLiderSel(null);}},
+            React.createElement("option",{value:""},"Todos los grupos"),
+            gruposFiltrados.map(function(g){return React.createElement("option",{key:g.id,value:g.id},g.nombre);})
+          )
+        ):null,
+        React.createElement("div",{className:"campo"},
+          React.createElement("label",null,"Mes"),
+          React.createElement("input",{type:"month",value:mes,onChange:function(e){setMes(e.target.value);}})
+        )
+      )
+    ),
+
+    React.createElement("div",{className:"tarjeta"},
+      React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:8}},
+        React.createElement("div",{className:"tarjeta-titulo",style:{marginBottom:0}},"Resumen del grupo"),
+        React.createElement("span",{style:{fontSize:13,color:"var(--gris)",fontWeight:600}},nomGrupoSel+" \u00B7 "+mes)
+      ),
+      React.createElement("table",{className:"tabla"},
+        React.createElement("thead",null,
+          React.createElement("tr",null,
+            React.createElement("th",null,"Lider"),
+            React.createElement("th",{style:{textAlign:"center"}},"Sesiones asignadas"),
+            React.createElement("th",{style:{textAlign:"center"}},"Respondidas"),
+            React.createElement("th",{style:{textAlign:"center"}},"% Sesiones"),
+            React.createElement("th",{style:{textAlign:"center"}},"% Habitos mes"),
+            esAdmin?React.createElement("th",{className:"no-print"},"Detalle"):null
+          )
+        ),
+        React.createElement("tbody",null,
+          lideresFiltrados.map(function(l){
+            var uid=l.uid||l.id;
+            var sesAsig=sesionesLider(uid);
+            var sesResp=respuestasLider(uid);
+            var pctSes=sesAsig.length?Math.round(sesResp.length/sesAsig.length*100):0;
+            var pctH=pctHabitos(uid);
+            return React.createElement("tr",{key:l.id},
+              React.createElement("td",null,React.createElement("strong",null,l.nombre)),
+              React.createElement("td",{style:{textAlign:"center"}},sesAsig.length),
+              React.createElement("td",{style:{textAlign:"center"}},sesResp.length),
+              React.createElement("td",{style:{textAlign:"center"}},
+                sesAsig.length>0?React.createElement("span",{className:"badge "+(pctSes>=80?"badge-verde":pctSes>=50?"badge-dorado":"badge-rojo")},pctSes+"%"):React.createElement("span",{className:"badge badge-gris"},"Sin sesiones")
+              ),
+              React.createElement("td",{style:{textAlign:"center"}},
+                pctH!==null?React.createElement("span",{className:"badge "+(pctH>=80?"badge-verde":pctH>=50?"badge-dorado":"badge-rojo")},pctH+"%"):React.createElement("span",{className:"badge badge-gris"},"Sin habitos")
+              ),
+              esAdmin?React.createElement("td",{className:"no-print"},
+                React.createElement("button",{className:"btn btn-ghost btn-sm",onClick:function(){setLiderSel(l.id);}},"\uD83D\uDD0D Detalle")
+              ):null
+            );
+          })
+        )
+      ),
+      lideresFiltrados.length===0?React.createElement("div",{className:"vacio"},"Selecciona un gerente o grupo para ver lideres"):null
+    ),
+
+    esAdmin&&lider?React.createElement("div",{className:"tarjeta"},
+      React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}},
+        React.createElement("div",{className:"tarjeta-titulo",style:{marginBottom:0}},"Detalle: "+lider.nombre),
+        React.createElement("button",{className:"btn btn-secondary btn-sm no-print",onClick:function(){setLiderSel(null);}},"Cerrar")
+      ),
+      React.createElement("div",{style:{marginBottom:20}},
+        React.createElement("div",{style:{fontSize:13,fontWeight:600,marginBottom:8,color:"var(--verde)"}},"Sesiones"),
+        sesionesLider(lider.uid||lider.id).length===0?React.createElement("div",{className:"vacio",style:{padding:16}},"Sin sesiones asignadas"):
+        React.createElement("table",{className:"tabla"},
+          React.createElement("thead",null,React.createElement("tr",null,React.createElement("th",null,"Sesion"),React.createElement("th",null,"Fecha"),React.createElement("th",{style:{textAlign:"center"}},"Respondio"))),
+          React.createElement("tbody",null,
+            sesionesLider(lider.uid||lider.id).map(function(sa){
+              var respondio=respuestasLider(lider.uid||lider.id).find(function(r){return r.sesionId===sa.sesionId;});
+              return React.createElement("tr",{key:sa.id},
+                React.createElement("td",null,sa.titulo),
+                React.createElement("td",null,sa.fecha||"Sin fecha"),
+                React.createElement("td",{style:{textAlign:"center"}},respondio?React.createElement("span",{className:"badge badge-verde"},"\u2713 Si"):React.createElement("span",{className:"badge badge-rojo"},"\u2717 No"))
+              );
+            })
+          )
+        )
+      ),
+      React.createElement("div",null,
+        React.createElement("div",{style:{fontSize:13,fontWeight:600,marginBottom:8,color:"var(--verde)"}},"Habitos del mes "+mes),
+        habitosLider(lider.uid||lider.id).length===0?React.createElement("div",{className:"vacio",style:{padding:16}},"Sin habitos asignados"):
+        habitosLider(lider.uid||lider.id).map(function(h){
+          var diasMes=new Date(new Date(mes+"-01").getFullYear(),new Date(mes+"-01").getMonth()+1,0).getDate();
+          var hechos=rd.docs.filter(function(d){return d.habitoId===h.id&&d.fecha&&d.fecha.startsWith(mes)&&d.completado;}).length;
+          var pct=Math.round(hechos/diasMes*100);
+          return React.createElement("div",{key:h.id,style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:"1px solid var(--gris-cl)"}},
+            React.createElement("span",{style:{fontSize:14}},h.descripcion),
+            React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},
+              React.createElement("span",{style:{fontSize:12,color:"var(--gris)"}},hechos+" / "+diasMes+" dias"),
+              React.createElement("span",{className:"badge "+(pct>=80?"badge-verde":pct>=50?"badge-dorado":"badge-rojo")},pct+"%")
+            )
+          );
+        })
+      )
+    ):null,
+
+    React.createElement("div",{style:{textAlign:"center",fontSize:11,color:"var(--gris)",marginTop:8,paddingBottom:8}},
+      "Reporte generado el "+new Date().toLocaleDateString("es-CO",{day:"2-digit",month:"long",year:"numeric"})+" \u00B7 Escuela de L\u00EDderes \u00B7 Yureima Acevedo Arango"
+    )
+  );
+}
+
 function App(){
   var su=_useState(null),usuario=su[0],setUsuario=su[1];
   var si=_useState(true),ini=si[0],setIni=si[1];
@@ -1001,7 +1196,7 @@ function App(){
     });
     return unsub;
   },[]);
-  if(ini)return React.createElement("div",{className:"carga-full"},React.createElement("div",{style:{fontSize:52,marginBottom:16}},"\uD83C\uDF31"),React.createElement("div",{style:{fontFamily:'"Playfair Display",serif',fontSize:24,color:"var(--verde)"}},"Escuela de Lideres"),React.createElement("div",{className:"spinner",style:{marginTop:24}}));
+  if(ini)return React.createElement("div",{className:"carga-full"},React.createElement("div",{style:{fontSize:52,marginBottom:16}},"\uD83C\uDF31"),React.createElement("div",{style:{fontFamily:'"Playfair Display",serif',fontSize:24,color:"var(--verde)"}},"Escuela de Líderes"),React.createElement("div",{className:"spinner",style:{marginTop:24}}));
   if(!usuario)return React.createElement(Login,{onLogin:function(u){setUsuario(u);setPag("inicio");}});
   function renderPag(){
     var r=usuario.rol;
@@ -1012,6 +1207,7 @@ function App(){
     if(pag==="sesiones")return React.createElement(PagSesiones,null);
     if(pag==="habitos-admin")return React.createElement(PagHabitosAdmin,null);
     if(pag==="asignaciones")return React.createElement(PagAsignaciones,null);
+    if(pag==="reportes")return React.createElement(PagReportes,{usuario:usuario});
     if(pag==="mis-sesiones")return React.createElement(PagMisSesiones,{usuario:usuario});
     if(pag==="mis-habitos")return React.createElement(PagMisHabitos,{usuario:usuario});
     if(pag==="mi-grupo")return React.createElement(PagMiGrupo,{usuario:usuario});
@@ -1021,7 +1217,13 @@ function App(){
     React.createElement("button",{className:"menu-toggle",onClick:function(){setSideOpen(function(o){return !o;});},style:{display:"block"}},"☰"),
     sideOpen?React.createElement("div",{style:{position:"fixed",inset:0,background:"rgba(0,0,0,.4)",zIndex:99},onClick:function(){setSideOpen(false);}}):null,
     React.createElement(Sidebar,{usuario:usuario,pag:pag,setPag:function(p){setPag(p);setSideOpen(false);},open:sideOpen}),
-    React.createElement("main",{className:"main"},renderPag())
+    React.createElement("main",{className:"main"},
+      renderPag(),
+      React.createElement("div",{className:"footer-app"},
+        React.createElement("strong",null,"Escuela de Líderes"),
+        " · Yureima Acevedo Arango · © "+new Date().getFullYear()+" · Todos los derechos reservados · Software de uso privado y exclusivo"
+      )
+    )
   );
 }
 
