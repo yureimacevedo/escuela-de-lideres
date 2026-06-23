@@ -309,7 +309,7 @@ function Sidebar(p){
   var u=p.usuario,esA=u.rol==="admin",esG=u.rol==="gerente";
   function ni(icon,label,id){return React.createElement(NavItem,{key:id,icon:icon,label:label,activo:p.pag===id,onClick:function(){p.setPag(id);}});}
   var items=[ni("\uD83C\uDFE0","Inicio","inicio")];
-  if(esA){items.push(React.createElement("div",{key:"sg",className:"nav-section"},"Gestion"));items.push(ni("\uD83C\uDFE2","Empresas","empresas"));items.push(ni("\uD83D\uDC65","Grupos","grupos"));items.push(ni("\uD83D\uDC64","Usuarios","usuarios"));items.push(React.createElement("div",{key:"sp",className:"nav-section"},"Programa"));items.push(ni("\uD83D\uDCDA","Sesiones","sesiones"));items.push(ni("\uD83D\uDCCB","Asignaciones","asignaciones"));items.push(ni("\u2705","Habitos","habitos-admin"));items.push(React.createElement("div",{key:"sr",className:"nav-section"},"Reportes"));items.push(ni("\uD83D\uDCCA","Reportes","reportes"));items.push(ni("\uD83D\uDCDD","Notas privadas","notas-coach"));}
+  if(esA){items.push(React.createElement("div",{key:"sg",className:"nav-section"},"Gestion"));items.push(ni("\uD83C\uDFE2","Empresas","empresas"));items.push(ni("\uD83D\uDC65","Grupos","grupos"));items.push(ni("\uD83D\uDC64","Usuarios","usuarios"));items.push(React.createElement("div",{key:"sp",className:"nav-section"},"Programa"));items.push(ni("\uD83D\uDCDA","Sesiones","sesiones"));items.push(ni("\uD83D\uDCCB","Asignaciones","asignaciones"));items.push(ni("\u2705","Habitos","habitos-admin"));items.push(React.createElement("div",{key:"sr",className:"nav-section"},"Reportes"));items.push(ni("\uD83D\uDCCA","Reportes","reportes"));items.push(ni("\uD83D\uDCDD","Notas y retro","notas-coach"));items.push(ni("\uD83D\uDD0D","Seguimiento","seguimiento"));items.push(ni("\uD83C\uDFAF","Compromisos","compromisos-coach"));}
   if(esG){items.push(React.createElement("div",{key:"se",className:"nav-section"},"Mi empresa"));items.push(ni("\uD83D\uDC65","Mi grupo","mi-grupo"));items.push(ni("\uD83D\uDCCA","Reporte grupo","reportes"));}
   if(!esA&&!esG){items.push(React.createElement("div",{key:"sm",className:"nav-section"},"Mi proceso"));items.push(ni("\uD83D\uDCD6","Mis sesiones","mis-sesiones"));items.push(ni("\u2705","Mis habitos","mis-habitos"));items.push(ni("\uD83D\uDCCB","Mis compromisos","mis-compromisos"));items.push(ni("\uD83D\uDCCA","Mi progreso","mi-progreso"));}
   return React.createElement("div",{className:"sidebar "+(p.open?"open":"")},
@@ -1237,9 +1237,17 @@ function PagSeguimiento(p){
       ):React.createElement("div",{className:"tarjeta"},React.createElement("div",{className:"vacio"},React.createElement("div",{style:{fontSize:40,marginBottom:8}},"\uD83D\uDC40"),"Selecciona un l\u00EDder"))
     ),
     sesionSel&&lider?React.createElement("div",{className:"tarjeta"},
-      React.createElement("div",{className:"tarjeta-titulo"},"\uD83D\uDCAC Respuestas de "+lider.nombre),
-      respuestasLider?React.createElement(VisorRespuestas,{sesionId:sesionSel,respuestas:respuestasLider.respuestas||{},liderUid:lider.uid||lider.id,onComentar:agregarComentario,comentariosDeRespuesta:comentariosDeRespuesta}):
-      React.createElement("div",{className:"vacio"},"Este l\u00EDder a\u00FAn no ha respondido esta sesi\u00F3n")
+      React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}},
+        React.createElement("div",{className:"tarjeta-titulo",style:{marginBottom:0}},"Respuestas de "+lider.nombre),
+        !respuestasLider?React.createElement("span",{className:"badge badge-gris"},"Aun no ha respondido"):React.createElement("span",{className:"badge badge-verde"},"Respondida")
+      ),
+      React.createElement(VisorRespuestas,{
+        sesionId:sesionSel,
+        respuestas:respuestasLider?respuestasLider.respuestas||{}:{},
+        liderUid:lider.uid||lider.id,
+        onComentar:agregarComentario,
+        comentariosDeRespuesta:comentariosDeRespuesta
+      })
     ):null
   );
 }
@@ -1260,10 +1268,13 @@ function VisorRespuestas(p){
       respuesta?React.createElement("div",{style:{fontSize:14,lineHeight:1.7,color:"var(--carbon)",background:"#fff",padding:"10px 14px",borderRadius:8,borderLeft:"3px solid var(--verde-cl)"}},respuesta):
       React.createElement("div",{style:{fontSize:13,color:"var(--gris)",fontStyle:"italic"}},"Sin respuesta"),
       comentarios.length>0?React.createElement("div",{style:{marginTop:8}},comentarios.map(function(com){return React.createElement("div",{key:com.id,style:{fontSize:12,background:"#FEF3C7",padding:"6px 10px",borderRadius:6,marginBottom:4,borderLeft:"3px solid var(--dorado)"}},React.createElement("strong",null,"Coach: "),com.texto,React.createElement("span",{style:{color:"var(--gris)",marginLeft:8}},com.fecha));})):null,
-      respuesta?React.createElement("div",{style:{marginTop:10,display:"flex",gap:8,alignItems:"flex-start"}},
-        React.createElement("textarea",{value:textoNuevo,onChange:function(e){var v=e.target.value;setNuevosCom(function(n){var x=Object.assign({},n);x[i]=v;return x;});},placeholder:"Comentario al l\u00EDder sobre esta respuesta...",style:{flex:1,padding:"8px 10px",border:"1.5px solid var(--gris-cl)",borderRadius:8,fontSize:13,fontFamily:"Inter,sans-serif",resize:"vertical",minHeight:60}}),
-        React.createElement("button",{className:"btn btn-primary btn-sm",style:{flexShrink:0},onClick:function(){p.onComentar(i,textoNuevo);setNuevosCom(function(n){var x=Object.assign({},n);x[i]="";return x;});}},"\uD83D\uDCBE Enviar")
-      ):null
+React.createElement("div",{style:{marginTop:10}},
+        React.createElement("div",{style:{fontSize:12,color:"var(--gris)",marginBottom:4,fontWeight:500}},"Escribe un comentario para el l\u00EDder:"),
+        React.createElement("div",{style:{display:"flex",gap:8,alignItems:"flex-start"}},
+          React.createElement("textarea",{value:textoNuevo,onChange:function(e){var v=e.target.value;setNuevosCom(function(n){var x=Object.assign({},n);x[i]=v;return x;});},placeholder:"Comentario al l\u00EDder sobre esta pregunta...",style:{flex:1,padding:"8px 10px",border:"1.5px solid var(--gris-cl)",borderRadius:8,fontSize:13,fontFamily:"Inter,sans-serif",resize:"vertical",minHeight:60}}),
+          React.createElement("button",{className:"btn btn-primary btn-sm",style:{flexShrink:0},onClick:function(){if(textoNuevo.trim()){p.onComentar(i,textoNuevo);setNuevosCom(function(n){var x=Object.assign({},n);x[i]="";return x;});}}},"Enviar")
+        )
+      )
     );
   }));
 }
@@ -1790,6 +1801,7 @@ function PagMisCompromisos(p){
   var rc=useCol("el_compromisos",[["liderUid","==",u.uid||u.id]]);
   var rh=useCol("el_habitos_asignados",[["liderUid","==",u.uid||u.id]]);
   var rretro=useCol("el_retroalimentacion",[["liderUid","==",u.uid||u.id]]);
+  var rcompcoach=useCol("el_compromisos_coach",[["liderUid","==",u.uid||u.id]]);
 
   var sm=_useState(null),sesionSel=sm[0],setSesionSel=sm[1];
   var sb=_useState(false),busy=sb[0],setBusy=sb[1];
@@ -2121,6 +2133,129 @@ function PagNotasCoach(p){
   );
 }
 
+function PagCompromisosCoach(p){
+  var ru=useCol("el_usuarios",[["rol","==","lider"]]);
+  var rg=useCol("el_grupos");
+  var rc=useCol("el_compromisos_coach");
+  var sl=_useState(""),liderSel=sl[0],setLiderSel=sl[1];
+  var st=_useState(""),texto=st[0],setTexto=st[1];
+  var sf=_useState(""),fechaLimite=sf[0],setFechaLimite=sf[1];
+  var sb=_useState(false),busy=sb[0],setBusy=sb[1];
+  var sok=_useState(""),okMsg=sok[0],setOkMsg=sok[1];
+  var sgf=_useState(""),filtroGrupo=sgf[0],setFiltroGrupo=sgf[1];
+
+  function guardar(){
+    if(!liderSel||!texto.trim()){return;}
+    var lider=ru.docs.find(function(l){return l.id===liderSel;});
+    setBusy(true);
+    db.collection("el_compromisos_coach").add({
+      liderUid:lider?lider.uid||lider.id:liderSel,
+      liderDocId:liderSel,
+      liderNombre:lider?lider.nombre:"",
+      coachUid:p.usuario.uid,
+      texto:texto,
+      fechaLimite:fechaLimite||null,
+      cumplido:false,
+      fecha:fechaHoy(),
+      creadoEn:FSV.serverTimestamp()
+    }).then(function(){
+      setTexto("");setFechaLimite("");setBusy(false);
+      setOkMsg("Compromiso asignado");setTimeout(function(){setOkMsg("");},2000);
+    });
+  }
+
+  function toggleCumplido(comp){
+    db.collection("el_compromisos_coach").doc(comp.id).update({cumplido:!comp.cumplido,fechaCumplimiento:!comp.cumplido?fechaHoy():null});
+  }
+  function eliminar(id){db.collection("el_compromisos_coach").doc(id).delete();}
+
+  var lideresFiltrados=filtroGrupo?ru.docs.filter(function(l){return l.grupoId===filtroGrupo;}):ru.docs;
+  var compsFiltrados=liderSel?rc.docs.filter(function(c){return c.liderDocId===liderSel;}):rc.docs;
+  var pendientes=compsFiltrados.filter(function(c){return !c.cumplido;});
+  var cumplidos=compsFiltrados.filter(function(c){return c.cumplido;});
+
+  if(!ru.listo||!rc.listo) return React.createElement(Spin,null);
+
+  return React.createElement("div",null,
+    React.createElement("div",{className:"topbar"},React.createElement("div",null,
+      React.createElement("div",{className:"page-title"},"Compromisos asignados"),
+      React.createElement("div",{className:"page-sub"},"Compromisos que t\u00FA asignas a tus l\u00EDderes")
+    )),
+
+    React.createElement("div",{className:"tarjeta"},
+      React.createElement("div",{className:"tarjeta-titulo"},"Asignar nuevo compromiso"),
+      okMsg?React.createElement("div",{className:"alerta alerta-ok"},okMsg):null,
+      React.createElement("div",{className:"grid2"},
+        React.createElement("div",{className:"campo"},
+          React.createElement("label",null,"Grupo (filtrar)"),
+          React.createElement("select",{value:filtroGrupo,onChange:function(e){setFiltroGrupo(e.target.value);setLiderSel("");}},
+            React.createElement("option",{value:""},"Todos los grupos"),
+            rg.docs.map(function(g){return React.createElement("option",{key:g.id,value:g.id},g.nombre);})
+          )
+        ),
+        React.createElement("div",{className:"campo"},
+          React.createElement("label",null,"L\u00EDder *"),
+          React.createElement("select",{value:liderSel,onChange:function(e){setLiderSel(e.target.value);}},
+            React.createElement("option",{value:""},"Seleccionar l\u00EDder..."),
+            lideresFiltrados.map(function(l){return React.createElement("option",{key:l.id,value:l.id},l.nombre);})
+          )
+        )
+      ),
+      React.createElement("div",{className:"campo"},
+        React.createElement("label",null,"Compromiso *"),
+        React.createElement("textarea",{value:texto,onChange:function(e){setTexto(e.target.value);},placeholder:"Describe el compromiso que debe cumplir el l\u00EDder...",style:{minHeight:90}})
+      ),
+      React.createElement("div",{className:"campo"},
+        React.createElement("label",null,"Fecha l\u00EDmite (opcional)"),
+        React.createElement("input",{type:"date",value:fechaLimite,onChange:function(e){setFechaLimite(e.target.value);}})
+      ),
+      React.createElement("button",{className:"btn btn-primary",onClick:guardar,disabled:busy||!liderSel||!texto.trim()},busy?"Guardando...":"Asignar compromiso")
+    ),
+
+    React.createElement("div",{className:"grid2"},
+      React.createElement("div",{className:"tarjeta"},
+        React.createElement("div",{className:"tarjeta-titulo"},"Pendientes ("+pendientes.length+")"),
+        pendientes.length===0?React.createElement("div",{className:"vacio"},"Sin compromisos pendientes"):
+        pendientes.map(function(comp){
+          var hoy=fechaHoy();
+          var vencido=comp.fechaLimite&&comp.fechaLimite<hoy;
+          return React.createElement("div",{key:comp.id,style:{padding:"12px 0",borderBottom:"1px solid var(--gris-cl)"}},
+            React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8}},
+              React.createElement("div",{style:{flex:1}},
+                React.createElement("div",{style:{fontSize:12,fontWeight:600,color:"var(--verde)",marginBottom:2}},comp.liderNombre),
+                React.createElement("div",{style:{fontSize:14,lineHeight:1.5}},comp.texto),
+                React.createElement("div",{style:{fontSize:11,marginTop:4,color:vencido?"var(--rojo)":"var(--gris)"}},
+                  comp.fechaLimite?(vencido?"Vencido: ":"Fecha l\u00EDmite: ")+comp.fechaLimite:"Sin fecha l\u00EDmite"
+                )
+              ),
+              React.createElement("div",{style:{display:"flex",gap:4,flexShrink:0}},
+                React.createElement("button",{className:"btn btn-ghost btn-sm",onClick:function(){toggleCumplido(comp);}},"\u2713 Cumplido"),
+                React.createElement("button",{className:"btn btn-secondary btn-sm",onClick:function(){eliminar(comp.id);}},"\u00D7")
+              )
+            )
+          );
+        })
+      ),
+      React.createElement("div",{className:"tarjeta"},
+        React.createElement("div",{className:"tarjeta-titulo"},"Cumplidos ("+cumplidos.length+")"),
+        cumplidos.length===0?React.createElement("div",{className:"vacio"},"Aun no hay compromisos cumplidos"):
+        cumplidos.map(function(comp){
+          return React.createElement("div",{key:comp.id,style:{padding:"10px 0",borderBottom:"1px solid var(--gris-cl)",opacity:.7}},
+            React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8}},
+              React.createElement("div",null,
+                React.createElement("div",{style:{fontSize:12,fontWeight:600,color:"var(--verde)"}},comp.liderNombre),
+                React.createElement("div",{style:{fontSize:13,textDecoration:"line-through",color:"var(--gris)"}},comp.texto),
+                comp.fechaCumplimiento?React.createElement("div",{style:{fontSize:11,color:"var(--gris)"}},"\u2713 Cumplido el "+comp.fechaCumplimiento):null
+              ),
+              React.createElement("button",{className:"btn btn-secondary btn-sm",onClick:function(){eliminar(comp.id);}},"\u00D7")
+            )
+          );
+        })
+      )
+    )
+  );
+}
+
 function App(){
   var su=_useState(null),usuario=su[0],setUsuario=su[1];
   var si=_useState(true),ini=si[0],setIni=si[1];
@@ -2155,6 +2290,7 @@ function App(){
     if(pag==="mi-progreso")return React.createElement(PagMiProgreso,{usuario:usuario});
     if(pag==="notas-coach")return React.createElement(PagNotasCoach,{usuario:usuario});
     if(pag==="seguimiento")return React.createElement(PagSeguimiento,{usuario:usuario});
+    if(pag==="compromisos-coach")return React.createElement(PagCompromisosCoach,{usuario:usuario});
     if(pag==="mis-sesiones")return React.createElement(PagMisSesiones,{usuario:usuario});
     if(pag==="mis-habitos")return React.createElement(PagMisHabitos,{usuario:usuario});
     if(pag==="mi-grupo")return React.createElement(PagMiGrupo,{usuario:usuario});
