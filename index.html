@@ -1159,6 +1159,32 @@ function PanelProximaReunion(p){
   );
 }
 
+function BtnEnviarObs(props){
+  return React.createElement("button",{
+    className:"btn btn-primary btn-sm",
+    style:{flexShrink:0},
+    onClick:function(){
+      var txt=props.obsHabitos[props.obsKey]||"";
+      if(!txt.trim()) return;
+      var col="el_obs_habito_coach";
+      db.collection(col).add({
+        liderUid:props.lider.uid||props.lider.id,
+        habitoId:props.habitoId,
+        coachUid:props.coachUid,
+        texto:txt,
+        fecha:fechaHoy(),
+        creadoEn:FSV.serverTimestamp()
+      }).then(function(){
+        props.setObsHabitos(function(o){
+          var x=Object.assign({},o);
+          x[props.obsKey]="";
+          return x;
+        });
+      });
+    }
+  },"Enviar");
+}
+
 function PagSeguimiento(p){
   var ru=useCol("el_usuarios",[["rol","==","lider"]]);
   var rg=useCol("el_grupos");
@@ -1171,16 +1197,18 @@ function PagSeguimiento(p){
   var sl=_useState(null),liderSel=sl[0],setLiderSel=sl[1];
   var ss=_useState(null),sesionSel=ss[0],setSesionSel=ss[1];
   var sg=_useState(""),filtroGrupo=sg[0],setFiltroGrupo=sg[1];
+  var soh=_useState({}),obsHabitos=soh[0],setObsHabitos=soh[1];
   var lider=liderSel?ru.docs.find(function(l){return l.id===liderSel;}):null;
   var sesionesLider=lider?ra.docs.filter(function(a){return a.liderUid===(lider.uid||lider.id)||(a.grupoId&&a.grupoId===lider.grupoId);}):[];
-  var respuestasLider=lider&&sesionSel?rr.docs.find(function(r){return r.liderUid===(lider.uid||lider.id)&&r.sesionId===sesionSel;}):null;
-  var habitosLider=lider?rh.docs.filter(function(h){return h.liderUid===(lider.uid||lider.id)&&h.activo!==false;}):[];
+  var respuestasLider=lider&&sesionSel?rr.docs.find(function(r){return (r.liderUid===lider.uid||r.liderUid===lider.id)&&r.sesionId===sesionSel;}):null;
+  var habitosLider=lider?rh.docs.filter(function(h){return (h.liderUid===lider.uid||h.liderUid===lider.id)&&h.activo!==false;}):[];
   var mes=new Date().getFullYear()+"-"+String(new Date().getMonth()+1).padStart(2,"0");
-  var checksMes=lider?rd.docs.filter(function(d){return d.liderUid===(lider.uid||lider.id)&&d.fecha&&d.fecha.startsWith(mes)&&d.completado;}):[];
-  function comentariosDeRespuesta(pregIdx){return rcom.docs.filter(function(c){return c.liderUid===(lider?lider.uid||lider.id:"")&&c.sesionId===sesionSel&&c.preguntaIdx===pregIdx;});}
+  var checksMes=lider?rd.docs.filter(function(d){return (d.liderUid===lider.uid||d.liderUid===lider.id)&&d.fecha&&d.fecha.startsWith(mes)&&d.completado;}):[];
+  function comentariosDeRespuesta(pregIdx){return rcom.docs.filter(function(c){return (c.liderUid===lider.uid||c.liderUid===lider.id)&&c.sesionId===sesionSel&&c.preguntaIdx===pregIdx;});}
   function agregarComentario(pregIdx,texto){
     if(!texto.trim()||!lider) return;
-    db.collection("el_comentarios_coach").add({liderUid:lider.uid||lider.id,sesionId:sesionSel,preguntaIdx:pregIdx,texto:texto,coachUid:p.usuario.uid,fecha:fechaHoy(),creadoEn:FSV.serverTimestamp()});
+    var liderUidFinal=lider.uid||lider.id;
+    db.collection("el_comentarios_coach").add({liderUid:liderUidFinal,sesionId:sesionSel,preguntaIdx:pregIdx,texto:texto,coachUid:p.usuario.uid,fecha:fechaHoy(),creadoEn:FSV.serverTimestamp()});
   }
   var lideresFiltrados=filtroGrupo?ru.docs.filter(function(l){return l.grupoId===filtroGrupo;}):ru.docs;
   if(!ru.listo||!rr.listo||!ra.listo) return React.createElement(Spin,null);
@@ -1193,7 +1221,7 @@ function PagSeguimiento(p){
           React.createElement("div",{className:"campo",style:{marginBottom:12}},React.createElement("select",{value:filtroGrupo,onChange:function(e){setFiltroGrupo(e.target.value);setLiderSel(null);setSesionSel(null);}},React.createElement("option",{value:""},"Todos los grupos"),rg.docs.map(function(g){return React.createElement("option",{key:g.id,value:g.id},g.nombre);}))),
           lideresFiltrados.map(function(l){
             var activo=liderSel===l.id;
-            var respsCount=rr.docs.filter(function(r){return r.liderUid===(l.uid||l.id);}).length;
+            var respsCount=rr.docs.filter(function(r){return r.liderUid===l.uid||r.liderUid===l.id;}).length;
             return React.createElement("div",{key:l.id,style:{padding:"10px 12px",borderRadius:8,cursor:"pointer",background:activo?"var(--verde-xs)":"transparent",border:"1.5px solid "+(activo?"var(--verde)":"transparent"),marginBottom:4,transition:"all .15s"},onClick:function(){setLiderSel(l.id);setSesionSel(null);}},
               React.createElement("div",{style:{fontWeight:600,fontSize:14}},l.nombre),
               React.createElement("div",{style:{fontSize:11,color:"var(--gris)",marginTop:2}},respsCount+" respondida(s)")
@@ -1219,18 +1247,30 @@ function PagSeguimiento(p){
         ),
         React.createElement("div",{className:"tarjeta"},
           React.createElement("div",{className:"tarjeta-titulo"},"H\u00E1bitos este mes"),
+          React.createElement("div",{style:{fontSize:12,color:"var(--gris)",marginBottom:12}},"Toca \u2601\uFE0F para agregar una observaci\u00F3n sobre cada h\u00E1bito"),
           habitosLider.length===0?React.createElement("div",{className:"vacio"},"Sin h\u00E1bitos"):
           habitosLider.map(function(h){
             var diasMes=new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate();
             var hechos=checksMes.filter(function(d){return d.habitoId===h.id;}).length;
             var pct=Math.round(hechos/diasMes*100);
-            var coms=rd.docs.filter(function(d){return d.habitoId===h.id&&d.liderUid===(lider.uid||lider.id)&&d.comentario&&d.comentario.trim();});
-            return React.createElement("div",{key:h.id,style:{padding:"10px 0",borderBottom:"1px solid var(--gris-cl)"}},
-              React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center"}},
-                React.createElement("span",{style:{fontSize:13,fontWeight:500}},h.descripcion),
-                React.createElement("span",{className:"badge "+(pct>=80?"badge-verde":pct>=50?"badge-dorado":"badge-rojo")},pct+"% \u2014 "+hechos+"/"+diasMes)
+            var coms=rd.docs.filter(function(d){return (d.liderUid===lider.uid||d.liderUid===lider.id)&&d.habitoId===h.id&&d.comentario&&d.comentario.trim();});
+            var obsKey="obs_"+h.id;
+            return React.createElement("div",{key:h.id,style:{background:"var(--crema)",borderRadius:10,padding:14,marginBottom:10}},
+              React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}},
+                React.createElement("span",{style:{fontSize:13,fontWeight:600}},h.descripcion),
+                React.createElement("span",{className:"badge "+(pct>=80?"badge-verde":pct>=50?"badge-dorado":"badge-rojo")},pct+"% — "+hechos+"/"+diasMes+" d\u00edas")
               ),
-              coms.length>0?coms.map(function(d){return React.createElement("div",{key:d.id,style:{fontSize:12,color:"var(--gris)",fontStyle:"italic",background:"var(--crema)",padding:"4px 8px",borderRadius:4,marginTop:4}},d.fecha+": \""+d.comentario+"\"");}):null
+              coms.length>0?React.createElement("div",{style:{marginBottom:8}},
+                React.createElement("div",{style:{fontSize:11,fontWeight:600,color:"var(--gris)",marginBottom:4}},"Comentario del l\u00edder:"),
+                coms.map(function(d){return React.createElement("div",{key:d.id,style:{fontSize:12,fontStyle:"italic",background:"#fff",padding:"6px 10px",borderRadius:6,borderLeft:"3px solid var(--verde-cl)"}},d.fecha+": \""+d.comentario+"\"");})
+              ):React.createElement("div",{style:{fontSize:12,color:"var(--gris)",fontStyle:"italic",marginBottom:4}},"Sin comentario del l\u00edder"),
+              React.createElement("div",{style:{marginTop:8}},
+                React.createElement("div",{style:{fontSize:11,fontWeight:600,color:"var(--gris)",marginBottom:4}},"Tu observaci\u00f3n como coach:"),
+                React.createElement("div",{style:{display:"flex",gap:8,alignItems:"flex-start"}},
+                  React.createElement("textarea",{value:obsHabitos[obsKey]||"",onChange:function(e){var v=e.target.value;setObsHabitos(function(o){var x=Object.assign({},o);x[obsKey]=v;return x;});},placeholder:"Escribe tu observaci\u00f3n sobre este h\u00e1bito...",style:{flex:1,padding:"7px 10px",border:"1.5px solid var(--gris-cl)",borderRadius:8,fontSize:12,fontFamily:"Inter,sans-serif",resize:"vertical",minHeight:55,background:"#fff"}}),
+                  React.createElement(BtnEnviarObs,{obsHabitos:obsHabitos,obsKey:obsKey,lider:lider,habitoId:h.id,coachUid:p.usuario.uid,setObsHabitos:setObsHabitos})
+                )
+              )
             );
           })
         )
@@ -1798,16 +1838,100 @@ function PagMisCompromisos(p){
   var u=p.usuario;
   var rc=useCol("el_compromisos_coach",[["liderUid","==",u.uid||u.id]]);
   var rretro=useCol("el_retroalimentacion",[["liderUid","==",u.uid||u.id]]);
+  var sn=_useState({}),notasAbiertas=sn[0],setNotasAbiertas=sn[1];
+  var st=_useState({}),textoNotas=st[0],setTextoNotas=st[1];
+  var sok=_useState(""),okMsg=sok[0],setOkMsg=sok[1];
 
   var pendientes=rc.docs.filter(function(c){return !c.cumplido;});
   var cumplidos=rc.docs.filter(function(c){return c.cumplido;});
   var pct=rc.docs.length?Math.round(cumplidos.length/rc.docs.length*100):0;
 
-  function toggleCumplido(comp){
+  function mostrarOk(msg){setOkMsg(msg);setTimeout(function(){setOkMsg("");},2500);}
+
+  function marcarCumplido(comp){
     db.collection("el_compromisos_coach").doc(comp.id).update({
-      cumplido:!comp.cumplido,
-      fechaCumplimiento:!comp.cumplido?fechaHoy():null
+      cumplido:true, fechaCumplimiento:fechaHoy()
+    }).then(function(){mostrarOk("Guardado con exito");});
+  }
+
+  function desmarcarCumplido(comp){
+    db.collection("el_compromisos_coach").doc(comp.id).update({
+      cumplido:false, fechaCumplimiento:null
+    }).then(function(){mostrarOk("Actualizado");});
+  }
+
+  function guardarNota(comp){
+    var nota=textoNotas[comp.id]||"";
+    if(!nota.trim()) return;
+    db.collection("el_compromisos_coach").doc(comp.id).update({
+      notaLider:nota
+    }).then(function(){
+      mostrarOk("Nota guardada con exito");
+      setNotasAbiertas(function(o){var x=Object.assign({},o);x[comp.id]=false;return x;});
     });
+  }
+
+  function toggleNota(id){
+    setNotasAbiertas(function(o){var x=Object.assign({},o);x[id]=!o[id];return x;});
+  }
+
+  function renderComp(comp, esCumplido){
+    var hoy=fechaHoy();
+    var vencido=!esCumplido&&comp.fechaLimite&&comp.fechaLimite<hoy;
+    var notaAbierta=!!notasAbiertas[comp.id];
+    var notaTexto=textoNotas[comp.id]!==undefined?textoNotas[comp.id]:(comp.notaLider||"");
+    return React.createElement("div",{key:comp.id,style:{background:esCumplido?"var(--verde-xs)":"#fff",border:"1.5px solid "+(esCumplido?"var(--verde-cl)":"var(--gris-cl)"),borderRadius:10,padding:14,marginBottom:10}},
+      React.createElement("div",{style:{display:"flex",alignItems:"flex-start",gap:10}},
+        // Botones si/no
+        React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:4,flexShrink:0}},
+          !esCumplido?React.createElement("button",{
+            className:"btn btn-primary btn-sm",
+            style:{fontSize:11,padding:"4px 10px"},
+            onClick:function(){marcarCumplido(comp);}
+          },"\u2713 Si, lo hice"):
+          React.createElement("button",{
+            className:"btn btn-secondary btn-sm",
+            style:{fontSize:11,padding:"4px 10px"},
+            onClick:function(){desmarcarCumplido(comp);}
+          },"Deshacer")
+        ),
+        // Contenido
+        React.createElement("div",{style:{flex:1}},
+          React.createElement("div",{style:{fontSize:14,lineHeight:1.5,color:esCumplido?"var(--gris)":"var(--carbon)",textDecoration:esCumplido?"line-through":"none"}},comp.texto),
+          comp.fechaLimite&&!esCumplido?React.createElement("div",{style:{fontSize:11,marginTop:3,color:vencido?"var(--rojo)":"var(--gris)"}},
+            (vencido?"Vencido: ":"Hasta: ")+comp.fechaLimite
+          ):null,
+          esCumplido&&comp.fechaCumplimiento?React.createElement("div",{style:{fontSize:11,color:"var(--verde)",marginTop:3}},"\u2713 Cumplido el "+comp.fechaCumplimiento):null,
+          // Nota existente
+          comp.notaLider&&!notaAbierta?React.createElement("div",{style:{fontSize:12,color:"var(--gris)",fontStyle:"italic",marginTop:6,background:"var(--crema)",padding:"5px 8px",borderRadius:6}},
+            "\u201C"+comp.notaLider+"\u201D"
+          ):null
+        ),
+        // Boton nube de nota
+        React.createElement("button",{
+          onClick:function(){
+            if(!notaAbierta) setTextoNotas(function(t){var x=Object.assign({},t);x[comp.id]=comp.notaLider||"";return x;});
+            toggleNota(comp.id);
+          },
+          title:"Agregar nota",
+          style:{border:"none",background:"none",cursor:"pointer",fontSize:18,padding:4,color:notaAbierta||comp.notaLider?"var(--verde)":"var(--gris-cl)",flexShrink:0}
+        },"\u2601\uFE0F")
+      ),
+      // Campo de nota expandido
+      notaAbierta?React.createElement("div",{style:{marginTop:10,paddingTop:10,borderTop:"1px solid var(--gris-cl)"}},
+        React.createElement("div",{style:{fontSize:12,color:"var(--gris)",marginBottom:6}},"Escribe una nota sobre este compromiso (opcional):"),
+        React.createElement("textarea",{
+          value:notaTexto,
+          onChange:function(e){var v=e.target.value;setTextoNotas(function(t){var x=Object.assign({},t);x[comp.id]=v;return x;});},
+          placeholder:"Ej: Lo practique durante la reunion del martes...",
+          style:{width:"100%",padding:"8px 10px",border:"1.5px solid var(--verde-cl)",borderRadius:8,fontSize:13,fontFamily:"Inter,sans-serif",resize:"vertical",minHeight:70,background:"#fff"}
+        }),
+        React.createElement("div",{style:{display:"flex",gap:8,marginTop:6,justifyContent:"flex-end"}},
+          React.createElement("button",{className:"btn btn-secondary btn-sm",onClick:function(){toggleNota(comp.id);}},"Cancelar"),
+          React.createElement("button",{className:"btn btn-primary btn-sm",onClick:function(){guardarNota(comp);}},"Guardar nota")
+        )
+      ):null
+    );
   }
 
   if(!rc.listo||!rretro.listo) return React.createElement(Spin,null);
@@ -1818,7 +1942,8 @@ function PagMisCompromisos(p){
       React.createElement("div",{className:"page-sub"},cumplidos.length+" de "+rc.docs.length+" cumplidos")
     )),
 
-    // Retroalimentacion del coach
+    okMsg?React.createElement("div",{className:"alerta alerta-ok",style:{position:"fixed",top:16,right:16,zIndex:999,boxShadow:"0 4px 12px rgba(0,0,0,.15)",minWidth:220}},"\u2705 "+okMsg):null,
+
     rretro.docs.length>0?React.createElement("div",{className:"tarjeta",style:{borderLeft:"4px solid var(--dorado)"}},
       React.createElement("div",{className:"tarjeta-titulo"},"\uD83D\uDCCB Retroalimentaci\u00F3n de tu coach"),
       rretro.docs.slice().sort(function(a,b){return(b.creadoEn&&b.creadoEn.seconds||0)-(a.creadoEn&&a.creadoEn.seconds||0);}).map(function(r){
@@ -1830,52 +1955,24 @@ function PagMisCompromisos(p){
       })
     ):null,
 
-    // Compromisos pendientes
-    React.createElement("div",{className:"tarjeta"},
-      React.createElement("div",{className:"tarjeta-titulo"},"\uD83C\uDFAF Compromisos pendientes ("+pendientes.length+")"),
+    rc.docs.length>0?React.createElement("div",{className:"tarjeta",style:{marginBottom:16}},
+      React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}},
+        React.createElement("span",{style:{fontWeight:600}},"Progreso general"),
+        React.createElement("span",{style:{fontWeight:700,color:"var(--verde)",fontSize:20}},pct+"%")
+      ),
+      React.createElement("div",{className:"barra-wrap"},React.createElement("div",{className:"barra-fill",style:{width:pct+"%"}})),
+      React.createElement("div",{style:{fontSize:12,color:"var(--gris)",marginTop:6}},cumplidos.length+" de "+rc.docs.length+" compromisos cumplidos")
+    ):null,
 
-      rc.docs.length>0?React.createElement("div",{style:{marginBottom:16}},
-        React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}},
-          React.createElement("span",{style:{fontSize:13,color:"var(--gris)"}},"Progreso general"),
-          React.createElement("span",{style:{fontWeight:700,color:"var(--verde)"}},pct+"%")
-        ),
-        React.createElement("div",{className:"barra-wrap"},React.createElement("div",{className:"barra-fill",style:{width:pct+"%"}}))
-      ):null,
+    pendientes.length>0?React.createElement("div",{className:"tarjeta"},
+      React.createElement("div",{className:"tarjeta-titulo"},"\uD83C\uDFAF Pendientes ("+pendientes.length+")"),
+      React.createElement("div",{style:{fontSize:12,color:"var(--gris)",marginBottom:12}},"Toca \u2601\uFE0F para agregar una nota sobre cada compromiso"),
+      pendientes.map(function(comp){return renderComp(comp,false);})
+    ):React.createElement("div",{className:"tarjeta"},React.createElement("div",{className:"vacio"},"\uD83C\uDF89 Sin compromisos pendientes")),
 
-      pendientes.length===0?React.createElement("div",{className:"vacio"},"Sin compromisos pendientes. \uD83C\uDF89"):
-      pendientes.map(function(comp){
-        var hoy=fechaHoy();
-        var vencido=comp.fechaLimite&&comp.fechaLimite<hoy;
-        return React.createElement("div",{key:comp.id,style:{display:"flex",alignItems:"flex-start",gap:12,padding:"12px 0",borderBottom:"1px solid var(--gris-cl)"}},
-          React.createElement("div",{
-            style:{width:24,height:24,borderRadius:4,border:"2px solid var(--verde)",background:"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:2},
-            onClick:function(){toggleCumplido(comp);}
-          }),
-          React.createElement("div",{style:{flex:1}},
-            React.createElement("div",{style:{fontSize:14,lineHeight:1.5,color:"var(--carbon)"}},comp.texto),
-            comp.fechaLimite?React.createElement("div",{style:{fontSize:11,marginTop:4,color:vencido?"var(--rojo)":"var(--gris)"}},
-              (vencido?"Vencido: ":"Fecha l\u00EDmite: ")+comp.fechaLimite
-            ):null
-          )
-        );
-      })
-    ),
-
-    // Compromisos cumplidos
     cumplidos.length>0?React.createElement("div",{className:"tarjeta"},
-      React.createElement("div",{className:"tarjeta-titulo"},"\u2705 Compromisos cumplidos ("+cumplidos.length+")"),
-      cumplidos.map(function(comp){
-        return React.createElement("div",{key:comp.id,style:{display:"flex",alignItems:"flex-start",gap:12,padding:"10px 0",borderBottom:"1px solid var(--gris-cl)",opacity:.75}},
-          React.createElement("div",{
-            style:{width:24,height:24,borderRadius:4,border:"2px solid var(--verde)",background:"var(--verde)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:2,color:"#fff",fontSize:14,fontWeight:"bold"},
-            onClick:function(){toggleCumplido(comp);}
-          },"\u2713"),
-          React.createElement("div",{style:{flex:1}},
-            React.createElement("div",{style:{fontSize:14,textDecoration:"line-through",color:"var(--gris)"}},comp.texto),
-            comp.fechaCumplimiento?React.createElement("div",{style:{fontSize:11,color:"var(--verde)",marginTop:2}},"\u2713 Cumplido el "+comp.fechaCumplimiento):null
-          )
-        );
-      })
+      React.createElement("div",{className:"tarjeta-titulo"},"\u2705 Cumplidos ("+cumplidos.length+")"),
+      cumplidos.map(function(comp){return renderComp(comp,true);})
     ):null,
 
     rc.docs.length===0?React.createElement("div",{className:"tarjeta"},
