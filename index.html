@@ -1606,7 +1606,7 @@ function PagReportes(p){
   function sesionesLider(uid){
     return ra.docs.filter(function(a){
       if(a.liderUid===uid) return true;
-      if(a.grupoId){var lider=lideres.find(function(l){return l.uid===uid||l.id===uid;});return lider&&lider.grupoId===a.grupoId;}
+      if(a.grupoId&&!a.liderUid){var lider=lideres.find(function(l){return l.uid===uid||l.id===uid;});return lider&&lider.grupoId===a.grupoId;}
       return false;
     });
   }
@@ -1796,149 +1796,92 @@ function useRecordatorioHabitos(habitos, uid){
 // ══════════════════════════════════════════════════
 function PagMisCompromisos(p){
   var u=p.usuario;
-  var ra=useCol("el_sesiones_asignadas",[["grupoId","==",u.grupoId||"__N__"]]);
-  var ra2=useCol("el_sesiones_asignadas",[["liderUid","==",u.uid||u.id]]);
-  var rc=useCol("el_compromisos",[["liderUid","==",u.uid||u.id]]);
-  var rh=useCol("el_habitos_asignados",[["liderUid","==",u.uid||u.id]]);
+  var rc=useCol("el_compromisos_coach",[["liderUid","==",u.uid||u.id]]);
   var rretro=useCol("el_retroalimentacion",[["liderUid","==",u.uid||u.id]]);
-  var rcompcoach=useCol("el_compromisos_coach",[["liderUid","==",u.uid||u.id]]);
 
-  var sm=_useState(null),sesionSel=sm[0],setSesionSel=sm[1];
-  var sb=_useState(false),busy=sb[0],setBusy=sb[1];
-  var stextos=_useState({}),textosLibres=stextos[0],setTextosLibres=stextos[1];
-  var snuevo=_useState(""),nuevoComp=snuevo[0],setNuevoComp=snuevo[1];
+  var pendientes=rc.docs.filter(function(c){return !c.cumplido;});
+  var cumplidos=rc.docs.filter(function(c){return c.cumplido;});
+  var pct=rc.docs.length?Math.round(cumplidos.length/rc.docs.length*100):0;
 
-  var idsVistos={};
-  var todasSes=ra.docs.filter(function(s){return !s.liderUid;}).concat(ra2.docs).filter(function(s){if(idsVistos[s.id])return false;idsVistos[s.id]=true;return true;});
-
-  var habitosActivos=rh.docs.filter(function(h){
-    if(h.activo===false) return false;
-    var hoy=fechaHoy();
-    if(h.fechaInicio&&hoy<h.fechaInicio) return false;
-    if(h.fechaFin&&hoy>h.fechaFin) return false;
-    return true;
-  });
-
-  function compsDeSesion(sId){return rc.docs.filter(function(c){return c.sesionId===sId&&!c.habitoId;});}
-  function compDeHabito(sId,hId){return rc.docs.find(function(c){return c.sesionId===sId&&c.habitoId===hId;});}
-
-  function guardarCompHabito(habitoId, texto){
-    if(!texto.trim()||!sesionSel) return;
-    var existente=compDeHabito(sesionSel,habitoId);
-    if(existente){
-      db.collection("el_compromisos").doc(existente.id).update({texto:texto,actualizadoEn:FSV.serverTimestamp()});
-    } else {
-      db.collection("el_compromisos").add({liderUid:u.uid||u.id,sesionId:sesionSel,habitoId:habitoId,texto:texto,cumplido:false,fecha:fechaHoy(),creadoEn:FSV.serverTimestamp()});
-    }
+  function toggleCumplido(comp){
+    db.collection("el_compromisos_coach").doc(comp.id).update({
+      cumplido:!comp.cumplido,
+      fechaCumplimiento:!comp.cumplido?fechaHoy():null
+    });
   }
 
-  function agregarCompLibre(){
-    if(!nuevoComp.trim()||!sesionSel) return;
-    setBusy(true);
-    db.collection("el_compromisos").add({liderUid:u.uid||u.id,sesionId:sesionSel,texto:nuevoComp,cumplido:false,fecha:fechaHoy(),creadoEn:FSV.serverTimestamp()}).then(function(){setNuevoComp("");setBusy(false);});
-  }
-
-  function toggleCumplido(comp){db.collection("el_compromisos").doc(comp.id).update({cumplido:!comp.cumplido});}
-  function eliminarComp(id){db.collection("el_compromisos").doc(id).delete();}
-
-  var totalComps=rc.docs.length;
-  var cumplidos=rc.docs.filter(function(c){return c.cumplido;}).length;
-  var pct=totalComps?Math.round(cumplidos/totalComps*100):0;
-
-  var sesActual=sesionSel?todasSes.find(function(s){return s.sesionId===sesionSel;}):null;
-
-  if(!ra.listo||!rc.listo||!rh.listo) return React.createElement(Spin,null);
+  if(!rc.listo||!rretro.listo) return React.createElement(Spin,null);
 
   return React.createElement("div",null,
     React.createElement("div",{className:"topbar"},React.createElement("div",null,
       React.createElement("div",{className:"page-title"},"Mis compromisos"),
-      React.createElement("div",{className:"page-sub"},cumplidos+" de "+totalComps+" cumplidos")
+      React.createElement("div",{className:"page-sub"},cumplidos.length+" de "+rc.docs.length+" cumplidos")
     )),
-
-    totalComps>0?React.createElement("div",{className:"tarjeta"},
-      React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}},
-        React.createElement("span",{style:{fontWeight:600}},"Progreso general"),
-        React.createElement("span",{style:{fontWeight:700,color:"var(--verde)",fontSize:20}},pct+"%")
-      ),
-      React.createElement("div",{className:"barra-wrap"},React.createElement("div",{className:"barra-fill",style:{width:pct+"%"}}))
-    ):null,
 
     // Retroalimentacion del coach
     rretro.docs.length>0?React.createElement("div",{className:"tarjeta",style:{borderLeft:"4px solid var(--dorado)"}},
       React.createElement("div",{className:"tarjeta-titulo"},"\uD83D\uDCCB Retroalimentaci\u00F3n de tu coach"),
       rretro.docs.slice().sort(function(a,b){return(b.creadoEn&&b.creadoEn.seconds||0)-(a.creadoEn&&a.creadoEn.seconds||0);}).map(function(r){
         return React.createElement("div",{key:r.id,style:{padding:"10px 0",borderBottom:"1px solid var(--gris-cl)"}},
+          r.sesionTitulo?React.createElement("div",{style:{fontSize:11,color:"var(--dorado)",fontWeight:600,marginBottom:4}},"Sesi\u00F3n: "+r.sesionTitulo):null,
           React.createElement("div",{style:{fontSize:14,lineHeight:1.6,color:"var(--carbon)"}},r.texto),
-          React.createElement("div",{style:{fontSize:11,color:"var(--gris)",marginTop:4}},r.sesionTitulo?" Sesi\u00F3n: "+r.sesionTitulo+" \u00B7 ":"")+r.fecha
+          React.createElement("div",{style:{fontSize:11,color:"var(--gris)",marginTop:4}},r.fecha)
         );
       })
     ):null,
 
-    // Selector de sesion
+    // Compromisos pendientes
     React.createElement("div",{className:"tarjeta"},
-      React.createElement("div",{className:"tarjeta-titulo"},"Selecciona una sesi\u00F3n"),
-      React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}},
-        todasSes.map(function(sa){
-          var activa=sesionSel===sa.sesionId;
-          var compsCount=rc.docs.filter(function(c){return c.sesionId===sa.sesionId;}).length;
-          return React.createElement("div",{key:sa.id,
-            style:{border:"2px solid "+(activa?"var(--verde)":"var(--gris-cl)"),borderRadius:10,padding:14,cursor:"pointer",background:activa?"var(--verde-xs)":"#fff",transition:"all .15s"},
-            onClick:function(){setSesionSel(activa?null:sa.sesionId);}},
-            React.createElement("div",{style:{fontSize:11,color:activa?"var(--verde)":"var(--gris)",textTransform:"uppercase",letterSpacing:1}},"Sesi\u00F3n "+sa.numero),
-            React.createElement("div",{style:{fontWeight:600,fontSize:13,margin:"4px 0"}},sa.titulo),
-            compsCount>0?React.createElement("span",{className:"badge "+(activa?"badge-verde":"badge-gris")},compsCount+" compromiso(s)"):null
-          );
-        })
-      ),
-      todasSes.length===0?React.createElement("div",{className:"vacio"},"Sin sesiones asignadas"):null
-    ),
+      React.createElement("div",{className:"tarjeta-titulo"},"\uD83C\uDFAF Compromisos pendientes ("+pendientes.length+")"),
 
-    // Panel de sesion seleccionada
-    sesionSel&&sesActual?React.createElement("div",null,
-
-      // Habitos relacionados
-      habitosActivos.length>0?React.createElement("div",{className:"tarjeta"},
-        React.createElement("div",{className:"tarjeta-titulo"},"\u2705 H\u00E1bitos \u2014 escribe tu compromiso (opcional)"),
-        React.createElement("div",{style:{fontSize:13,color:"var(--gris)",marginBottom:12}},"Estos son tus h\u00E1bitos activos. Puedes escribir un compromiso relacionado con cada uno."),
-        habitosActivos.map(function(h){
-          var compExistente=compDeHabito(sesionSel,h.id);
-          var textoLocal=textosLibres[h.id]!==undefined?textosLibres[h.id]:(compExistente?compExistente.texto:"");
-          return React.createElement("div",{key:h.id,style:{marginBottom:16,background:"var(--crema)",borderRadius:10,padding:14}},
-            React.createElement("div",{style:{fontWeight:600,fontSize:14,marginBottom:8,color:"var(--carbon)"}},h.descripcion),
-            React.createElement("div",{style:{fontSize:11,color:"var(--gris)",marginBottom:8}},(h.frecuencia||"Diario")+(h.hora?" \u00B7 "+h.hora:"")),
-            React.createElement("textarea",{
-              value:textoLocal,
-              onChange:function(e){var v=e.target.value;setTextosLibres(function(t){return Object.assign({},t,{[h.id]:v});});},
-              placeholder:"Escribe tu compromiso relacionado con este h\u00E1bito (opcional)...",
-              style:{width:"100%",padding:"8px 10px",border:"1.5px solid var(--gris-cl)",borderRadius:8,fontSize:13,fontFamily:"Inter,sans-serif",resize:"vertical",minHeight:70,background:"#fff"}
-            }),
-            React.createElement("div",{style:{display:"flex",justifyContent:"flex-end",marginTop:6}},
-              React.createElement("button",{className:"btn btn-ghost btn-sm",onClick:function(){guardarCompHabito(h.id,textoLocal);}},compExistente?"Actualizar":"Guardar")
-            )
-          );
-        })
+      rc.docs.length>0?React.createElement("div",{style:{marginBottom:16}},
+        React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}},
+          React.createElement("span",{style:{fontSize:13,color:"var(--gris)"}},"Progreso general"),
+          React.createElement("span",{style:{fontWeight:700,color:"var(--verde)"}},pct+"%")
+        ),
+        React.createElement("div",{className:"barra-wrap"},React.createElement("div",{className:"barra-fill",style:{width:pct+"%"}}))
       ):null,
 
-      // Compromisos libres
-      React.createElement("div",{className:"tarjeta"},
-        React.createElement("div",{className:"tarjeta-titulo"},"\uD83D\uDCDD Compromisos adicionales"),
-        React.createElement("div",{className:"campo"},
-          React.createElement("textarea",{value:nuevoComp,onChange:function(e){setNuevoComp(e.target.value);},placeholder:"Agrega un compromiso libre para esta sesi\u00F3n...",style:{minHeight:80}})
-        ),
-        React.createElement("button",{className:"btn btn-primary btn-sm",onClick:agregarCompLibre,disabled:busy||!nuevoComp.trim()},busy?"Guardando...":"Agregar compromiso"),
+      pendientes.length===0?React.createElement("div",{className:"vacio"},"Sin compromisos pendientes. \uD83C\uDF89"):
+      pendientes.map(function(comp){
+        var hoy=fechaHoy();
+        var vencido=comp.fechaLimite&&comp.fechaLimite<hoy;
+        return React.createElement("div",{key:comp.id,style:{display:"flex",alignItems:"flex-start",gap:12,padding:"12px 0",borderBottom:"1px solid var(--gris-cl)"}},
+          React.createElement("div",{
+            style:{width:24,height:24,borderRadius:4,border:"2px solid var(--verde)",background:"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:2},
+            onClick:function(){toggleCumplido(comp);}
+          }),
+          React.createElement("div",{style:{flex:1}},
+            React.createElement("div",{style:{fontSize:14,lineHeight:1.5,color:"var(--carbon)"}},comp.texto),
+            comp.fechaLimite?React.createElement("div",{style:{fontSize:11,marginTop:4,color:vencido?"var(--rojo)":"var(--gris)"}},
+              (vencido?"Vencido: ":"Fecha l\u00EDmite: ")+comp.fechaLimite
+            ):null
+          )
+        );
+      })
+    ),
 
-        compsDeSesion(sesionSel).length>0?React.createElement("div",{style:{marginTop:16}},
-          compsDeSesion(sesionSel).map(function(comp){
-            return React.createElement("div",{key:comp.id,style:{display:"flex",alignItems:"flex-start",gap:10,padding:"10px 0",borderBottom:"1px solid var(--gris-cl)"}},
-              React.createElement("div",{
-                style:{width:22,height:22,borderRadius:4,border:"2px solid "+(comp.cumplido?"var(--verde)":"var(--gris-cl)"),background:comp.cumplido?"var(--verde)":"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:13,fontWeight:"bold",flexShrink:0,marginTop:2},
-                onClick:function(){toggleCumplido(comp);}
-              },comp.cumplido?"\u2713":null),
-              React.createElement("div",{style:{flex:1,fontSize:14,textDecoration:comp.cumplido?"line-through":"none",color:comp.cumplido?"var(--gris)":"var(--carbon)"}},comp.texto),
-              React.createElement("button",{onClick:function(){eliminarComp(comp.id);},style:{border:"none",background:"none",color:"var(--gris-cl)",cursor:"pointer",fontSize:18,padding:2}},"\u00D7")
-            );
-          })
-        ):null
+    // Compromisos cumplidos
+    cumplidos.length>0?React.createElement("div",{className:"tarjeta"},
+      React.createElement("div",{className:"tarjeta-titulo"},"\u2705 Compromisos cumplidos ("+cumplidos.length+")"),
+      cumplidos.map(function(comp){
+        return React.createElement("div",{key:comp.id,style:{display:"flex",alignItems:"flex-start",gap:12,padding:"10px 0",borderBottom:"1px solid var(--gris-cl)",opacity:.75}},
+          React.createElement("div",{
+            style:{width:24,height:24,borderRadius:4,border:"2px solid var(--verde)",background:"var(--verde)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:2,color:"#fff",fontSize:14,fontWeight:"bold"},
+            onClick:function(){toggleCumplido(comp);}
+          },"\u2713"),
+          React.createElement("div",{style:{flex:1}},
+            React.createElement("div",{style:{fontSize:14,textDecoration:"line-through",color:"var(--gris)"}},comp.texto),
+            comp.fechaCumplimiento?React.createElement("div",{style:{fontSize:11,color:"var(--verde)",marginTop:2}},"\u2713 Cumplido el "+comp.fechaCumplimiento):null
+          )
+        );
+      })
+    ):null,
+
+    rc.docs.length===0?React.createElement("div",{className:"tarjeta"},
+      React.createElement("div",{className:"vacio"},
+        React.createElement("div",{style:{fontSize:36,marginBottom:8}},"\uD83C\uDFAF"),
+        "Tu coach aun no te ha asignado compromisos"
       )
     ):null
   );
