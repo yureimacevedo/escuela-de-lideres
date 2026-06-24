@@ -310,7 +310,7 @@ function Sidebar(p){
   function ni(icon,label,id){return React.createElement(NavItem,{key:id,icon:icon,label:label,activo:p.pag===id,onClick:function(){p.setPag(id);}});}
   var items=[ni("\uD83C\uDFE0","Inicio","inicio")];
   if(esA){items.push(React.createElement("div",{key:"sg",className:"nav-section"},"Gestion"));items.push(ni("\uD83C\uDFE2","Empresas","empresas"));items.push(ni("\uD83D\uDC65","Grupos","grupos"));items.push(ni("\uD83D\uDC64","Usuarios","usuarios"));items.push(React.createElement("div",{key:"sp",className:"nav-section"},"Programa"));items.push(ni("\uD83D\uDCDA","Sesiones","sesiones"));items.push(ni("\uD83D\uDCCB","Asignaciones","asignaciones"));items.push(ni("\u2705","Habitos","habitos-admin"));items.push(React.createElement("div",{key:"sr",className:"nav-section"},"Reportes"));items.push(ni("\uD83D\uDCCA","Reportes","reportes"));items.push(ni("\uD83D\uDCDD","Notas y retro","notas-coach"));items.push(ni("\uD83D\uDD0D","Seguimiento","seguimiento"));items.push(ni("\uD83C\uDFAF","Compromisos","compromisos-coach"));}
-  if(esG){items.push(React.createElement("div",{key:"se",className:"nav-section"},"Mi empresa"));items.push(ni("\uD83D\uDC65","Mi grupo","mi-grupo"));items.push(ni("\uD83D\uDCCA","Reporte grupo","reportes"));if(u.esLider){items.push(React.createElement("div",{key:"sl",className:"nav-section"},"Mi proceso"));items.push(ni("\uD83D\uDCD6","Mis sesiones","mis-sesiones"));items.push(ni("\u2705","Mis h\u00E1bitos","mis-habitos"));items.push(ni("\uD83C\uDFAF","Mis compromisos","mis-compromisos"));items.push(ni("\uD83D\uDCCA","Mi progreso","mi-progreso"));}}
+  if(esG){items.push(React.createElement("div",{key:"se",className:"nav-section"},"Mi empresa"));items.push(ni("\uD83D\uDC65","Mis equipos","mi-grupo"));items.push(ni("\uD83D\uDCCA","Reportes","reportes"));if(u.esLider){items.push(React.createElement("div",{key:"sl",className:"nav-section"},"Mi proceso"));items.push(ni("\uD83D\uDCD6","Mis sesiones","mis-sesiones"));items.push(ni("\u2705","Mis h\u00E1bitos","mis-habitos"));items.push(ni("\uD83C\uDFAF","Mis compromisos","mis-compromisos"));items.push(ni("\uD83D\uDCCA","Mi progreso","mi-progreso"));}}
   if(!esA&&!esG){items.push(React.createElement("div",{key:"sm",className:"nav-section"},"Mi proceso"));items.push(ni("\uD83D\uDCD6","Mis sesiones","mis-sesiones"));items.push(ni("\u2705","Mis habitos","mis-habitos"));items.push(ni("\uD83D\uDCCB","Mis compromisos","mis-compromisos"));items.push(ni("\uD83D\uDCCA","Mi progreso","mi-progreso"));}
   return React.createElement("div",{className:"sidebar "+(p.open?"open":"")},
     React.createElement("div",{className:"sidebar-logo"},
@@ -1013,6 +1013,106 @@ function FormAsignar(p){
   );
 }
 
+function ModalEditarAsignacion(p){
+  var a=p.asig;
+  var sf=_useState(a.fecha||""),fecha=sf[0],setFecha=sf[1];
+  var sa=_useState(a.asistio),asistio=sa[0],setAsistio=sa[1];
+  var sb=_useState(false),busy=sb[0],setBusy=sb[1];
+  var sok=_useState(""),okMsg=sok[0],setOkMsg=sok[1];
+
+  // Para sesiones de grupo: asistencia individual por lider
+  var lideresGrupo=a.grupoId?p.lideres.filter(function(l){return l.grupoId===a.grupoId;}):[];
+  // Inicializar estado de asistencia por lider
+  var asistIni={};
+  if(a.asistenciaPorLider) asistIni=a.asistenciaPorLider;
+  var sap=_useState(asistIni),asistPorLider=sap[0],setAsistPorLider=sap[1];
+
+  var esGrupo=a.tipo==="grupo"||(!a.liderUid&&a.grupoId);
+
+  function nomGrupo(id){var x=p.grupos.find(function(g){return g.id===id;});return x?x.nombre:"Grupo";}
+  function nomLider(uid){var x=p.lideres.find(function(l){return l.uid===uid||l.id===uid;});return x?x.nombre:"Lider";}
+  var destino=a.liderUid?nomLider(a.liderUid):nomGrupo(a.grupoId);
+
+  function toggleAsistLider(uid,val){
+    setAsistPorLider(function(prev){var x=Object.assign({},prev);x[uid]=x[uid]===val?undefined:val;return x;});
+  }
+
+  function guardar(){
+    setBusy(true);
+    var datos={fecha:fecha};
+    if(esGrupo){
+      datos.asistenciaPorLider=asistPorLider;
+    } else {
+      if(asistio!==undefined) datos.asistio=asistio;
+    }
+    db.collection("el_sesiones_asignadas").doc(a.id).update(datos).then(function(){
+      setBusy(false);setOkMsg("Guardado con exito");
+      setTimeout(function(){p.onClose();},1200);
+    });
+  }
+
+  return React.createElement(Modal,{titulo:"Editar asignaci\u00F3n",onClose:p.onClose},
+    okMsg?React.createElement("div",{className:"alerta alerta-ok"},"\u2705 "+okMsg):null,
+
+    React.createElement("div",{style:{background:"var(--crema)",borderRadius:8,padding:"12px 16px",marginBottom:16}},
+      React.createElement("div",{style:{fontWeight:600,fontSize:14}},a.titulo||"Sesi\u00F3n "+a.numero),
+      React.createElement("div",{style:{fontSize:12,color:"var(--gris)",marginTop:4}},
+        (a.liderUid?"\uD83D\uDC64 ":"\uD83D\uDC65 ")+destino
+      )
+    ),
+
+    React.createElement("div",{className:"campo"},
+      React.createElement("label",null,"Fecha de la sesi\u00F3n"),
+      React.createElement("input",{type:"date",value:fecha,onChange:function(e){setFecha(e.target.value);}})
+    ),
+
+    esGrupo?React.createElement("div",{className:"campo"},
+      React.createElement("label",null,"\u00BFQui\u00E9n asisti\u00F3?"),
+      React.createElement("div",{style:{fontSize:12,color:"var(--gris)",marginBottom:8}},"Marca individualmente para cada l\u00EDder del grupo"),
+      lideresGrupo.length===0?React.createElement("div",{className:"vacio"},"Sin l\u00EDderes en este grupo"):
+      lideresGrupo.map(function(l){
+        var uid=l.uid||l.id;
+        var val=asistPorLider[uid];
+        return React.createElement("div",{key:l.id,style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid var(--gris-cl)"}},
+          React.createElement("span",{style:{fontSize:14,fontWeight:500}},l.nombre),
+          React.createElement("div",{style:{display:"flex",gap:6}},
+            React.createElement("button",{
+              className:"btn btn-sm "+(val===true?"btn-primary":"btn-secondary"),
+              onClick:function(){toggleAsistLider(uid,true);}
+            },"\u2713 S\u00ED"),
+            React.createElement("button",{
+              className:"btn btn-sm "+(val===false?"btn-peligro":"btn-secondary"),
+              onClick:function(){toggleAsistLider(uid,false);}
+            },"\u2717 No"),
+            val===undefined?React.createElement("span",{style:{fontSize:11,color:"var(--gris)",alignSelf:"center"}},"?"):null
+          )
+        );
+      })
+    ):React.createElement("div",{className:"campo"},
+      React.createElement("label",null,"\u00BFAsisti\u00F3?"),
+      React.createElement("div",{style:{display:"flex",gap:10,marginTop:4}},
+        React.createElement("button",{
+          className:"btn "+(asistio===true?"btn-primary":"btn-secondary"),
+          style:{flex:1,justifyContent:"center"},
+          onClick:function(){setAsistio(asistio===true?undefined:true);}
+        },"\u2713 S\u00ED asisti\u00F3"),
+        React.createElement("button",{
+          className:"btn "+(asistio===false?"btn-peligro":"btn-secondary"),
+          style:{flex:1,justifyContent:"center"},
+          onClick:function(){setAsistio(asistio===false?undefined:false);}
+        },"\u2717 No asisti\u00F3")
+      ),
+      asistio===undefined?React.createElement("div",{style:{fontSize:12,color:"var(--gris)",marginTop:6}},"Sin marcar todavia"):null
+    ),
+
+    React.createElement("div",{className:"modal-footer"},
+      React.createElement("button",{className:"btn btn-secondary",onClick:p.onClose},"Cancelar"),
+      React.createElement("button",{className:"btn btn-primary",onClick:guardar,disabled:busy},busy?"Guardando...":"Guardar")
+    )
+  );
+}
+
+
 function PagAsignaciones(){
   var rs=useCol("el_sesiones");
   var rg=useCol("el_grupos");
@@ -1022,6 +1122,7 @@ function PagAsignaciones(){
   var ss=_useState(null),sesionSel=ss[0],setSesionSel=ss[1];
   var sd=_useState(null),del=sd[0],setDel=sd[1];
   var sf=_useState(""),filtroSesion=sf[0],setFiltroSesion=sf[1];
+  var se=_useState(null),editAsig=se[0],setEditAsig=se[1];
 
   function nomGrupo(id){var x=rg.docs.find(function(g){return g.id===id;});return x?x.nombre:null;}
   function nomLider(uid){var x=rl.docs.find(function(l){return l.uid===uid||l.id===uid;});return x?x.nombre:null;}
@@ -1083,6 +1184,7 @@ function PagAsignaciones(){
             React.createElement("th",null,"Asignada a"),
             React.createElement("th",null,"Tipo"),
             React.createElement("th",null,"Fecha"),
+            React.createElement("th",{style:{textAlign:"center"}},"Asisti\u00F3"),
             React.createElement("th",null,"Accion")
           )
         ),
@@ -1099,7 +1201,7 @@ function PagAsignaciones(){
               ),
               React.createElement("td",null,a.fecha||"Sin fecha"),
               React.createElement("td",null,
-                React.createElement("button",{className:"btn btn-peligro btn-sm",onClick:function(){setDel(a.id);}},"\uD83D\uDDD1 Eliminar")
+                React.createElement("button",{className:"btn btn-ghost btn-sm",style:{marginRight:6},onClick:function(){setEditAsig(a);}},"\u270f\ufe0f Editar"),React.createElement("button",{className:"btn btn-peligro btn-sm",onClick:function(){setDel(a.id);}},"\ud83d\uddd1")
               )
             );
           })
@@ -1109,7 +1211,8 @@ function PagAsignaciones(){
     ),
 
     modal&&sesionSel?React.createElement(FormAsignar,{sesion:sesionSel,grupos:rg.docs,lideres:rl.docs,onAsignar:doAsignar,onClose:function(){setModal(false);setSesionSel(null);}}):null,
-    del?React.createElement(Confirmar,{msg:"Eliminar esta asignacion?",onOk:eliminar,onCancel:function(){setDel(null);}}):null
+    del?React.createElement(Confirmar,{msg:"Eliminar esta asignacion?",onOk:eliminar,onCancel:function(){setDel(null);}}):null,
+    editAsig?React.createElement(ModalEditarAsignacion,{asig:editAsig,grupos:rg.docs,lideres:rl.docs,onClose:function(){setEditAsig(null);}}):null
   );
 }
 
@@ -1224,7 +1327,8 @@ function BtnEnviarObs(props){
 }
 
 function PagSeguimiento(p){
-  var ru=useCol("el_usuarios",[["rol","==","lider"]]);
+  var ru=useCol("el_usuarios");
+  var ruFiltrado=null; // se filtra abajo
   var rg=useCol("el_grupos");
   var rr=useCol("el_respuestas");
   var ra=useCol("el_sesiones_asignadas");
@@ -1236,6 +1340,18 @@ function PagSeguimiento(p){
   var ss=_useState(null),sesionSel=ss[0],setSesionSel=ss[1];
   var sg=_useState(""),filtroGrupo=sg[0],setFiltroGrupo=sg[1];
   var soh=_useState({}),obsHabitos=soh[0],setObsHabitos=soh[1];
+  // Grupos visibles segun rol
+  var esAdminSeg=p.usuario.rol==="admin";
+  var gruposSupSeg=Array.isArray(p.usuario.gruposSupervisa)&&p.usuario.gruposSupervisa.length>0?p.usuario.gruposSupervisa:(p.usuario.grupoId?[p.usuario.grupoId]:[]);
+  var gruposVisibles=esAdminSeg?rg.docs:rg.docs.filter(function(g){return gruposSupSeg.includes(g.id);});
+  var gruposVisiblesIds=gruposVisibles.map(function(g){return g.id;});
+  // Incluir lideres puros + gerentes con esLider, filtrados por grupos visibles
+  var todosLideres=ru.docs.filter(function(u){
+    var esLiderTipo=u.rol==="lider"||(u.rol==="gerente"&&u.esLider);
+    if(!esLiderTipo) return false;
+    if(esAdminSeg) return true;
+    return gruposVisiblesIds.includes(u.grupoId);
+  });
   var lider=liderSel?ru.docs.find(function(l){return l.id===liderSel;}):null;
   var sesionesLider=lider?ra.docs.filter(function(a){return a.liderUid===(lider.uid||lider.id)||(a.grupoId&&a.grupoId===lider.grupoId);}):[];
   var respuestasLider=lider&&sesionSel?rr.docs.find(function(r){return (r.liderUid===lider.uid||r.liderUid===lider.id)&&r.sesionId===sesionSel;}):null;
@@ -1248,7 +1364,7 @@ function PagSeguimiento(p){
     var liderUidFinal=lider.uid||lider.id;
     db.collection("el_comentarios_coach").add({liderUid:liderUidFinal,sesionId:sesionSel,preguntaIdx:pregIdx,texto:texto,coachUid:p.usuario.uid,fecha:fechaHoy(),creadoEn:FSV.serverTimestamp()});
   }
-  var lideresFiltrados=filtroGrupo?ru.docs.filter(function(l){return l.grupoId===filtroGrupo;}):ru.docs;
+  var lideresFiltrados=filtroGrupo?todosLideres.filter(function(l){return l.grupoId===filtroGrupo;}):todosLideres;
   if(!ru.listo||!rr.listo||!ra.listo) return React.createElement(Spin,null);
   return React.createElement("div",null,
     React.createElement("div",{className:"topbar"},React.createElement("div",null,React.createElement("div",{className:"page-title"},"Seguimiento"),React.createElement("div",{className:"page-sub"},"Respuestas y h\u00E1bitos de tus l\u00EDderes"))),
@@ -1256,7 +1372,7 @@ function PagSeguimiento(p){
       React.createElement("div",null,
         React.createElement("div",{className:"tarjeta"},
           React.createElement("div",{className:"tarjeta-titulo"},"L\u00EDderes"),
-          React.createElement("div",{className:"campo",style:{marginBottom:12}},React.createElement("select",{value:filtroGrupo,onChange:function(e){setFiltroGrupo(e.target.value);setLiderSel(null);setSesionSel(null);}},React.createElement("option",{value:""},"Todos los grupos"),rg.docs.map(function(g){return React.createElement("option",{key:g.id,value:g.id},g.nombre);}))),
+          React.createElement("div",{className:"campo",style:{marginBottom:12}},React.createElement("select",{value:filtroGrupo,onChange:function(e){setFiltroGrupo(e.target.value);setLiderSel(null);setSesionSel(null);}},React.createElement("option",{value:""},"Todos mis grupos"),gruposVisibles.map(function(g){return React.createElement("option",{key:g.id,value:g.id},g.nombre);}))),
           lideresFiltrados.map(function(l){
             var activo=liderSel===l.id;
             var respsCount=rr.docs.filter(function(r){return r.liderUid===l.uid||r.liderUid===l.id;}).length;
@@ -1664,7 +1780,7 @@ function PagMiGrupo(p){
   var u=p.usuario;
   var rg=useCol("el_grupos");
   var ru=useCol("el_usuarios");
-  var gruposIds=u.gruposSupervisa&&u.gruposSupervisa.length>0?u.gruposSupervisa:(u.grupoId?[u.grupoId]:[]);
+  var gruposIds=Array.isArray(u.gruposSupervisa)&&u.gruposSupervisa.length>0?u.gruposSupervisa:(u.grupoId?[u.grupoId]:[]);
   var grupos=rg.docs.filter(function(g){return gruposIds.includes(g.id);});
   var lideres=ru.docs.filter(function(u){return u.rol==="lider"&&gruposIds.includes(u.grupoId);});
 
@@ -1693,6 +1809,30 @@ function semaforo(pctSes, pctH){
   if(prom>=80) return {color:"#16a34a",bg:"#dcfce7",ico:"\uD83D\uDFE2",label:"Va bien"};
   if(prom>=50) return {color:"#d97706",bg:"#fef3c7",ico:"\uD83D\uDFE1",label:"En riesgo"};
   return {color:"#dc2626",bg:"#fee2e2",ico:"\uD83D\uDD34",label:"Requiere atenci\u00F3n"};
+}
+
+function ResumenAsistencia(p){
+  var uid=p.uid;
+  var pasadas=p.sesiones.filter(function(s){return s.fecha&&s.fecha<=fechaHoy();});
+  if(!pasadas.length) return null;
+  var asistio=0,noAsistio=0;
+  pasadas.forEach(function(s){
+    if(s.liderUid){
+      if(s.asistio===true) asistio++;
+      else if(s.asistio===false) noAsistio++;
+    } else if(s.asistenciaPorLider&&uid){
+      var v=s.asistenciaPorLider[uid];
+      if(v===true) asistio++;
+      else if(v===false) noAsistio++;
+    } else {
+      if(s.asistio===true) asistio++;
+      else if(s.asistio===false) noAsistio++;
+    }
+  });
+  var sinMarcar=pasadas.length-asistio-noAsistio;
+  return React.createElement("span",{style:{fontSize:11,background:"#fff",padding:"3px 8px",borderRadius:6,color:"var(--gris)"}},
+    "\uD83D\uDCC5 Asistencia: "+asistio+"\u2713 "+noAsistio+"\u2717"+(sinMarcar>0?" "+sinMarcar+"?":"")
+  );
 }
 
 function TablaLideres(p){
@@ -1746,8 +1886,9 @@ function TablaLideres(p){
         ),
         // Ultima sesion y compromisos pendientes
         React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap"}},
-          ultimaSesion?React.createElement("span",{style:{fontSize:11,background:"#fff",padding:"3px 8px",borderRadius:6,color:"var(--gris)"}},"\uD83D\uDCD6 \u00DAlt. sesi\u00F3n respondida: "+ultimaSesion.fecha):
+          ultimaSesion?React.createElement("span",{style:{fontSize:11,background:"#fff",padding:"3px 8px",borderRadius:6,color:"var(--gris)"}},"\uD83D\uDCD6 \u00DAlt. sesi\u00F3n: "+ultimaSesion.fecha):
           React.createElement("span",{style:{fontSize:11,background:"#fff",padding:"3px 8px",borderRadius:6,color:"#dc2626"}},"Sin sesiones respondidas"),
+          React.createElement(ResumenAsistencia,{sesiones:p.sesionesLider(l.uid||l.id),uid:l.uid||l.id}),
           compPend>0?React.createElement("span",{style:{fontSize:11,background:"#fff",padding:"3px 8px",borderRadius:6,color:"#d97706"}},"\uD83C\uDFAF "+compPend+" compromiso(s) pendiente(s)"):null,
           diasSinAct!==null&&diasSinAct>5?React.createElement("span",{style:{fontSize:11,background:"#fff",padding:"3px 8px",borderRadius:6,color:"#dc2626"}},"\u26A0\uFE0F "+diasSinAct+" d\u00EDas sin marcar h\u00E1bitos"):null
         ),
@@ -1777,11 +1918,11 @@ function PagReportes(p){
 
   function getMesActual(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");}
 
-  var lideres=ru.docs.filter(function(x){return x.rol==="lider";});
+  var lideres=ru.docs.filter(function(x){return x.rol==="lider"||(x.rol==="gerente"&&x.esLider);});
   var gerentes=ru.docs.filter(function(x){return x.rol==="gerente";});
 
   // Si el usuario es gerente, solo ve su grupo — sin posibilidad de cambiar
-  var gruposSupervisa=u.gruposSupervisa&&u.gruposSupervisa.length>0?u.gruposSupervisa:(u.grupoId?[u.grupoId]:[]);
+  var gruposSupervisa=Array.isArray(u.gruposSupervisa)&&u.gruposSupervisa.length>0?u.gruposSupervisa:(u.grupoId?[u.grupoId]:[]);
   var gruposFiltrados=esAdmin?rg.docs:rg.docs.filter(function(g){return gruposSupervisa.includes(g.id);});
 
   // Si selecciona gerente, filtra al grupo de ese gerente
