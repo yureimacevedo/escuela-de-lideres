@@ -1384,7 +1384,11 @@ function PagSeguimiento(p){
     return gruposVisiblesIds.includes(u.grupoId);
   });
   var lider=liderSel?ru.docs.find(function(l){return l.id===liderSel;}):null;
-  var sesionesLider=lider?ra.docs.filter(function(a){return a.liderUid===(lider.uid||lider.id)||(a.grupoId&&a.grupoId===lider.grupoId);}):[];
+  var sesionesLider=lider?ra.docs.filter(function(a){
+    var uid=lider.uid||lider.id;
+    if(a.liderUid) return a.liderUid===uid;
+    return a.grupoId&&a.grupoId===lider.grupoId;
+  }):[];
   var respuestasLider=lider&&sesionSel?rr.docs.find(function(r){return (r.liderUid===lider.uid||r.liderUid===lider.id)&&r.sesionId===sesionSel;}):null;
   var habitosLider=lider?rh.docs.filter(function(h){return (h.liderUid===lider.uid||h.liderUid===lider.id)&&h.activo!==false;}):[];
   var mes=new Date().getFullYear()+"-"+String(new Date().getMonth()+1).padStart(2,"0");
