@@ -732,7 +732,15 @@ function FormUsuario(p){
       React.createElement("input",{type:"password",value:f.clave,onChange:function(e){set("clave",e.target.value);},placeholder:"M\u00EDnimo 6 caracteres"}),
       React.createElement("div",{className:"campo-hint"},"El usuario podr\u00E1 cambiarla despu\u00E9s.")
     ):React.createElement("div",{style:{marginBottom:16}},
-      React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap",marginBottom:8}},React.createElement("button",{className:"btn btn-ghost btn-sm",onClick:resetClave},"Enviar correo restablecimiento"),React.createElement("button",{className:"btn btn-secondary btn-sm",onClick:function(){set("mostrarClave",!f.mostrarClave);}},f.mostrarClave?"Cancelar":"Cambiar contrase\u00F1a directa")),f.mostrarClave?React.createElement("div",{style:{marginTop:8,padding:"12px",background:"var(--crema)",borderRadius:8,border:"1px solid var(--gris-cl)"}},React.createElement("div",{className:"campo"},React.createElement("label",null,"Nueva contrase\u00F1a (m\u00EDn. 6 car.)"),React.createElement("input",{type:"password",value:f.nuevaClave||"",onChange:function(e){set("nuevaClave",e.target.value);},placeholder:"Contrase\u00F1a nueva"})),React.createElement("div",{style:{fontSize:12,color:"var(--gris)",marginBottom:8}},"Firebase no permite cambiar la clave de otro usuario desde el navegador. Opciones:"),React.createElement("div",{style:{fontSize:12,marginBottom:6}},"1. Enviar correo de restablecimiento al usuario (recomendado)."),React.createElement("div",{style:{fontSize:12,marginBottom:8}},"2. Eliminar el usuario, recrearlo en la app con la nueva clave y el mismo correo."),React.createElement("button",{className:"btn btn-ghost btn-sm",onClick:function(){window.open("https://console.firebase.google.com/u/0/project/escuela-de-lideres-ba682/authentication/users","_blank");}},"↗ Abrir Firebase Console")):null
+      React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap"}},
+      React.createElement("button",{className:"btn btn-ghost btn-sm",onClick:resetClave},"\uD83D\uDCE7 Enviar correo"),
+      React.createElement("button",{className:"btn btn-secondary btn-sm",
+        onClick:function(){
+          var correoEnc=encodeURIComponent(f.correo);
+          window.open("https://console.firebase.google.com/u/0/project/escuela-de-lideres-ba682/authentication/users?search="+correoEnc,"_blank");
+        }
+      },"\uD83D\uDD11 Cambiar en Firebase Console")
+    )
     ),
 
     React.createElement("div",{className:"campo"},
@@ -1915,7 +1923,7 @@ function TablaLideres(p){
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},
               React.createElement("span",{style:{fontSize:20}},sem.ico),
               React.createElement("span",{style:{fontSize:11,fontWeight:600,color:sem.color,background:"#fff",padding:"2px 8px",borderRadius:20,border:"1px solid "+sem.color}},sem.label),
-              React.createElement("span",{style:{fontSize:16,color:"var(--gris)",transition:"transform .2s",display:"inline-block",transform:abierto?"rotate(180deg)":"rotate(0deg)"}},"\\u25BE")
+              React.createElement("span",{style:{fontSize:16,color:"var(--gris)",transition:"transform .2s",display:"inline-block",transform:abierto?"rotate(180deg)":"rotate(0deg)"}},"▾")
             )
           ),
           React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:8}},
@@ -1924,11 +1932,11 @@ function TablaLideres(p){
               React.createElement("div",{style:{fontSize:10,color:"var(--gris)"}},sesResp.length+"/"+sesAsig.length+" ses.")
             ),
             React.createElement("div",{style:{background:"#fff",borderRadius:8,padding:"6px 8px",textAlign:"center"}},
-              React.createElement("div",{style:{fontSize:18,fontWeight:700,color:pctH!==null?(pctH>=80?"#16a34a":pctH>=50?"#d97706":"#dc2626"):"var(--gris)"}},pctH!==null?pctH+"%":"\\u2014"),
-              React.createElement("div",{style:{fontSize:10,color:"var(--gris)"}},"% h\\u00E1bitos")
+              React.createElement("div",{style:{fontSize:18,fontWeight:700,color:pctH!==null?(pctH>=80?"#16a34a":pctH>=50?"#d97706":"#dc2626"):"var(--gris)"}},pctH!==null?pctH+"%":"—"),
+              React.createElement("div",{style:{fontSize:10,color:"var(--gris)"}},"% hábitos")
             ),
             React.createElement("div",{style:{background:"#fff",borderRadius:8,padding:"6px 8px",textAlign:"center"}},
-              React.createElement("div",{style:{fontSize:18,fontWeight:700,color:diasSinAct===null?"var(--gris)":diasSinAct>7?"#dc2626":diasSinAct>3?"#d97706":"#16a34a"}},diasSinAct===null?"\\u2014":diasSinAct+"d"),
+              React.createElement("div",{style:{fontSize:18,fontWeight:700,color:diasSinAct===null?"var(--gris)":diasSinAct>7?"#dc2626":diasSinAct>3?"#d97706":"#16a34a"}},diasSinAct===null?"—":diasSinAct+"d"),
               React.createElement("div",{style:{fontSize:10,color:"var(--gris)"}},"sin act.")
             ),
             React.createElement("div",{style:{background:"#fff",borderRadius:8,padding:"6px 8px",textAlign:"center"}},
@@ -1940,8 +1948,8 @@ function TablaLideres(p){
             ultimaSesion?React.createElement("span",{style:{fontSize:11,background:"#fff",padding:"2px 8px",borderRadius:6,color:"var(--gris)"}},sesResp.length>0?sesResp[sesResp.length-1].fecha:"Sin responder"):
             React.createElement("span",{style:{fontSize:11,background:"#fff",padding:"2px 8px",borderRadius:6,color:"#dc2626"}},"Sin sesiones respondidas"),
             compPend>0?React.createElement("span",{style:{fontSize:11,background:"#fff",padding:"2px 8px",borderRadius:6,color:"#d97706"}},compPend+" comp. pendiente(s)"):null,
-            diasSinAct!==null&&diasSinAct>5?React.createElement("span",{style:{fontSize:11,background:"#fff",padding:"2px 8px",borderRadius:6,color:"#dc2626"}},diasSinAct+" d\\u00EDas sin h\\u00E1bitos"):null,
-            React.createElement("span",{style:{fontSize:11,background:"#fff",padding:"2px 8px",borderRadius:6,color:"var(--gris)",marginLeft:"auto"}},abierto?"Cerrar detalle \\u25B4":"Ver detalle \\u25BE")
+            diasSinAct!==null&&diasSinAct>5?React.createElement("span",{style:{fontSize:11,background:"#fff",padding:"2px 8px",borderRadius:6,color:"#dc2626"}},diasSinAct+" días sin hábitos"):null,
+            React.createElement("span",{style:{fontSize:11,background:"#fff",padding:"2px 8px",borderRadius:6,color:"var(--gris)",marginLeft:"auto"}},abierto?"Cerrar detalle ▴":"Ver detalle ▾")
           )
         ),
         // Panel de detalle expandible
@@ -1952,41 +1960,41 @@ function TablaLideres(p){
             sesAsig.length===0?React.createElement("div",{style:{fontSize:12,color:"var(--gris)"}},"Sin sesiones"):
             React.createElement("table",{className:"tabla"},
               React.createElement("thead",null,React.createElement("tr",null,
-                React.createElement("th",null,"Sesi\\u00F3n"),
+                React.createElement("th",null,"Sesión"),
                 React.createElement("th",null,"Fecha"),
-                React.createElement("th",{style:{textAlign:"center"}},"Respondi\\u00F3"),
-                React.createElement("th",{style:{textAlign:"center"}},"Asisti\\u00F3")
+                React.createElement("th",{style:{textAlign:"center"}},"Respondió"),
+                React.createElement("th",{style:{textAlign:"center"}},"Asistió")
               )),
               React.createElement("tbody",null,sesAsig.map(function(sa){
                 var resp=sesResp.find(function(r){return r.sesionId===sa.sesionId;});
                 var asist=sa.liderUid?sa.asistio:(sa.asistenciaPorLider&&sa.asistenciaPorLider[uid]);
                 return React.createElement("tr",{key:sa.id},
-                  React.createElement("td",null,sa.titulo||"Sesi\\u00F3n "+sa.numero),
+                  React.createElement("td",null,sa.titulo||"Sesión "+sa.numero),
                   React.createElement("td",null,sa.fecha||"Sin fecha"),
-                  React.createElement("td",{style:{textAlign:"center"}},resp?React.createElement("span",{className:"badge badge-verde"},"\\u2713 S\\u00ED"):React.createElement("span",{className:"badge badge-gris"},"No")),
-                  React.createElement("td",{style:{textAlign:"center"}},asist===true?React.createElement("span",{className:"badge badge-verde"},"\\u2713 S\\u00ED"):asist===false?React.createElement("span",{className:"badge badge-rojo"},"\\u2717 No"):React.createElement("span",{style:{fontSize:11,color:"var(--gris)"}},"?"))
+                  React.createElement("td",{style:{textAlign:"center"}},resp?React.createElement("span",{className:"badge badge-verde"},"✓ Sí"):React.createElement("span",{className:"badge badge-gris"},"No")),
+                  React.createElement("td",{style:{textAlign:"center"}},asist===true?React.createElement("span",{className:"badge badge-verde"},"✓ Sí"):asist===false?React.createElement("span",{className:"badge badge-rojo"},"✗ No"):React.createElement("span",{style:{fontSize:11,color:"var(--gris)"}},"?"))
                 );
               }))
             )
           ),
           // Habitos
           React.createElement("div",null,
-            React.createElement("div",{style:{fontSize:13,fontWeight:600,color:"var(--verde)",marginBottom:8}},"H\\u00E1bitos este mes"),
-            p.habitosLider(uid).length===0?React.createElement("div",{style:{fontSize:12,color:"var(--gris)"}},"Sin h\\u00E1bitos"):
+            React.createElement("div",{style:{fontSize:13,fontWeight:600,color:"var(--verde)",marginBottom:8}},"Hábitos este mes"),
+            p.habitosLider(uid).length===0?React.createElement("div",{style:{fontSize:12,color:"var(--gris)"}},"Sin hábitos"):
             p.habitosLider(uid).map(function(h){
               var diasMes=new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate();
               var hechos=p.checksLider(uid).filter(function(d){return d.habitoId===h.id;}).length;
               var pct=Math.round(hechos/diasMes*100);
               return React.createElement("div",{key:h.id,style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:"1px solid var(--gris-cl)"}},
                 React.createElement("span",{style:{fontSize:13}},h.descripcion),
-                React.createElement("span",{className:"badge "+(pct>=80?"badge-verde":pct>=50?"badge-dorado":"badge-rojo")},pct+"% \\u2014 "+hechos+"/"+diasMes)
+                React.createElement("span",{className:"badge "+(pct>=80?"badge-verde":pct>=50?"badge-dorado":"badge-rojo")},pct+"% — "+hechos+"/"+diasMes)
               );
             })
           )
         ):null
       );
     }),
-    p.lideres.length===0?React.createElement("div",{className:"vacio"},"Sin l\\u00EDderes en este grupo"):null
+    p.lideres.length===0?React.createElement("div",{className:"vacio"},"Sin líderes en este grupo"):null
   );
 }
 
