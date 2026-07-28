@@ -803,6 +803,7 @@ function PagSesiones(){
   var sv=_useState(null),ver=sv[0],setVer=sv[1];
   var sa=_useState(null),asig=sa[0],setAsig=sa[1];
   var sd=_useState(null),del=sd[0],setDel=sd[1];
+  var sfb=_useState(""),filtroBus=sfb[0],setFiltroBus=sfb[1];
   function open(s){setEdit(s||null);setModal(true);}
   function close(){setModal(false);setEdit(null);}
   function duplicar(s){var copia=Object.assign({},s);delete copia.id;copia.titulo="Copia de "+s.titulo;copia.numero=r.docs.length+1;copia.creadoEn=FSV.serverTimestamp();db.collection("el_sesiones").add(copia).then(function(ref){db.collection("el_sesiones").doc(ref.id).get().then(function(d){setEdit(Object.assign({id:d.id},d.data()));setModal(true);});});}
@@ -815,11 +816,41 @@ function PagSesiones(){
     return db.collection("el_sesiones_asignadas").add(doc).then(function(){setAsig(null);});
   }
   if(!r.listo)return React.createElement(Spin,null);
-  var sorted=r.docs.slice().sort(function(a,b){return a.numero-b.numero;});
+  var sorted=r.docs.filter(function(s){
+    if(!filtroBus.trim()) return true;
+    var q=filtroBus.toLowerCase();
+    return (s.titulo&&s.titulo.toLowerCase().includes(q))||(s.resumen&&s.resumen.toLowerCase().includes(q))||(String(s.numero||"").includes(q));
+  }).slice().sort(function(a,b){return a.numero-b.numero;});
   return React.createElement("div",null,
-    React.createElement("div",{className:"topbar"},React.createElement("div",null,React.createElement("div",{className:"page-title"},"Sesiones"),React.createElement("div",{className:"page-sub"},r.docs.length+" en biblioteca")),React.createElement("button",{className:"btn btn-primary",onClick:function(){open(null);}},"+ Nueva sesion")),
-    React.createElement("div",{className:"alerta alerta-info"},"Crea sesiones aqui y asignalas a grupos con una fecha."),
-    React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:16}},sorted.map(function(s){return React.createElement("div",{key:s.id,className:"sesion-card",onClick:function(){setVer(s);}},React.createElement("div",{className:"sesion-num"},"Sesion "+s.numero+(s.esDobleSesion?" (Doble)":"")),React.createElement("div",{className:"sesion-titulo"},s.titulo),s.resumen?React.createElement("div",{style:{fontSize:12,color:"var(--gris)",marginTop:6}},s.resumen.slice(0,90)):null,React.createElement("div",{style:{marginTop:12,display:"flex",gap:6,flexWrap:"wrap"},onClick:function(e){e.stopPropagation();}},React.createElement("button",{className:"btn btn-ghost btn-sm",onClick:function(){open(s);},"title":"Editar"},"Editar"),React.createElement("button",{className:"btn btn-secondary btn-sm",onClick:function(){duplicar(s);},"title":"Duplicar sesion"},"Duplicar"),React.createElement("button",{className:"btn btn-primary btn-sm",onClick:function(){setAsig(s);},"title":"Asignar a grupo o lider"},"Asignar"),React.createElement("button",{className:"btn btn-peligro btn-sm",onClick:function(){setDel(s.id);},"title":"Eliminar"},"x")));})),
+    React.createElement("div",{className:"topbar"},
+      React.createElement("div",null,
+        React.createElement("div",{className:"page-title"},"Sesiones"),
+        React.createElement("div",{className:"page-sub"},r.docs.length+" en biblioteca")
+      ),
+      React.createElement("div",{style:{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}},
+        React.createElement("input",{value:filtroBus,onChange:function(e){setFiltroBus(e.target.value);},placeholder:"Buscar sesi\u00F3n...",style:{padding:"7px 12px",border:"1.5px solid var(--gris-cl)",borderRadius:8,fontSize:13,fontFamily:"Inter,sans-serif",minWidth:180}}),
+        React.createElement("button",{className:"btn btn-primary",onClick:function(){setModal(true);setEdit(null);}},"+ Nueva sesi\u00F3n")
+      )
+    ),
+    React.createElement("div",{className:"alerta alerta-info"},"Crea sesiones aqu\u00ED y asignalas a grupos con una fecha."),
+    sorted.length===0&&filtroBus?React.createElement("div",{className:"vacio"},"Sin resultados para \""+filtroBus+"\""):null,
+    React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:16}},
+      sorted.map(function(s){
+        return React.createElement("div",{key:s.id,className:"tarjeta",style:{cursor:"pointer"},onClick:function(){setVer(s);}},
+          React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}},
+            React.createElement("div",{style:{fontWeight:700,fontSize:15,color:"var(--carbon)",flex:1}},s.numero+". "+s.titulo),
+            React.createElement("span",{className:"badge badge-gris",style:{flexShrink:0}},Array.isArray(s.preguntas)?s.preguntas.length+" preg.":"0 preg.")
+          ),
+          s.resumen?React.createElement("div",{style:{fontSize:13,color:"var(--gris)",marginBottom:10,lineHeight:1.5}},s.resumen):null,
+          React.createElement("div",{className:"no-print",style:{display:"flex",gap:6,flexWrap:"wrap"},onClick:function(e){e.stopPropagation();}},
+            React.createElement("button",{className:"btn btn-ghost btn-sm",onClick:function(){open(s);}},"Editar"),
+            React.createElement("button",{className:"btn btn-secondary btn-sm",onClick:function(){duplicar(s);}},"Duplicar"),
+            React.createElement("button",{className:"btn btn-primary btn-sm",onClick:function(){setAsig(s);}},"Asignar"),
+            React.createElement("button",{className:"btn btn-peligro btn-sm",onClick:function(){setDel(s.id);}},"\uD83D\uDDD1")
+          )
+        );
+      })
+    ),
     r.docs.length===0?React.createElement("div",{className:"vacio"},"Crea tu primera sesion"):null,
     modal?React.createElement(FormSesion,{inicial:edit,crud:crud,onClose:close}):null,
     ver?React.createElement(VerSesion,{sesion:ver,onClose:function(){setVer(null);}}):null,
@@ -1131,6 +1162,9 @@ function PagAsignaciones(){
   var sd=_useState(null),del=sd[0],setDel=sd[1];
   var sf=_useState(""),filtroSesion=sf[0],setFiltroSesion=sf[1];
   var se=_useState(null),editAsig=se[0],setEditAsig=se[1];
+  var sfg=_useState(""),filtroGrupoA=sfg[0],setFiltroGrupoA=sfg[1];
+  var sfl=_useState(""),filtroLiderA=sfl[0],setFiltroLiderA=sfl[1];
+  var sff=_useState(""),filtroFechaA=sff[0],setFiltroFechaA=sff[1];
 
   function nomGrupo(id){var x=rg.docs.find(function(g){return g.id===id;});return x?x.nombre:null;}
   function nomLider(uid){var x=rl.docs.find(function(l){return l.uid===uid||l.id===uid;});return x?x.nombre:null;}
@@ -1149,7 +1183,7 @@ function PagAsignaciones(){
 
   function eliminar(){db.collection("el_sesiones_asignadas").doc(del).delete().then(function(){setDel(null);});}
 
-  var asigFiltradas=filtroSesion?ra.docs.filter(function(a){return a.sesionId===filtroSesion;}):ra.docs;
+  var asigFiltradas=filtroSesion?ra.docs.filter(function(a){if(filtroSesion&&a.sesionId!==filtroSesion)return false;if(filtroGrupoA&&a.grupoId!==filtroGrupoA)return false;if(filtroLiderA&&a.liderUid!==filtroLiderA)return false;if(filtroFechaA&&a.fecha!==filtroFechaA)return false;return true;}):ra.docs.filter(function(a){if(filtroGrupoA&&a.grupoId!==filtroGrupoA)return false;if(filtroLiderA&&a.liderUid!==filtroLiderA)return false;if(filtroFechaA&&a.fecha!==filtroFechaA)return false;return true;});
 
   if(!rs.listo||!rg.listo||!rl.listo||!ra.listo)return React.createElement(Spin,null);
 
@@ -1178,11 +1212,21 @@ function PagAsignaciones(){
     React.createElement("div",{className:"tarjeta"},
       React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}},
         React.createElement("div",{className:"tarjeta-titulo",style:{marginBottom:0}},"Asignaciones activas"),
-        React.createElement("div",{className:"campo",style:{marginBottom:0,minWidth:200}},
-          React.createElement("select",{value:filtroSesion,onChange:function(e){setFiltroSesion(e.target.value);}},
+        React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}},
+          React.createElement("select",{value:filtroSesion,onChange:function(e){setFiltroSesion(e.target.value);},style:{padding:"7px 10px",border:"1.5px solid var(--gris-cl)",borderRadius:8,fontSize:13}},
             React.createElement("option",{value:""},"Todas las sesiones"),
             rs.docs.map(function(s){return React.createElement("option",{key:s.id,value:s.id},"Sesion "+s.numero+": "+s.titulo);})
-          )
+          ),
+          React.createElement("select",{value:filtroGrupoA,onChange:function(e){setFiltroGrupoA(e.target.value);},style:{padding:"7px 10px",border:"1.5px solid var(--gris-cl)",borderRadius:8,fontSize:13}},
+            React.createElement("option",{value:""},"Todos los grupos"),
+            rg.docs.map(function(g){return React.createElement("option",{key:g.id,value:g.id},g.nombre);})
+          ),
+          React.createElement("select",{value:filtroLiderA,onChange:function(e){setFiltroLiderA(e.target.value);},style:{padding:"7px 10px",border:"1.5px solid var(--gris-cl)",borderRadius:8,fontSize:13}},
+            React.createElement("option",{value:""},"Todos los l\u00EDderes"),
+            rl.docs.map(function(l){return React.createElement("option",{key:l.id,value:l.uid||l.id},l.nombre);})
+          ),
+          React.createElement("input",{type:"date",value:filtroFechaA,onChange:function(e){setFiltroFechaA(e.target.value);},style:{padding:"7px 10px",border:"1.5px solid var(--gris-cl)",borderRadius:8,fontSize:13}}),
+          (filtroSesion||filtroGrupoA||filtroLiderA||filtroFechaA)?React.createElement("button",{className:"btn btn-ghost btn-sm",onClick:function(){setFiltroSesion("");setFiltroGrupoA("");setFiltroLiderA("");setFiltroFechaA("");}},"✕ Limpiar"):null
         )
       ),
       React.createElement("table",{className:"tabla"},
