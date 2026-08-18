@@ -14,8 +14,7 @@
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<style>
-:root{--verde:#2D6A4F;--verde-cl:#40916C;--verde-xs:#D8F3DC;--dorado:#B5820A;--crema:#FAF7F2;--carbon:#1A1A1A;--gris:#6B7280;--gris-cl:#E5E7EB;--rojo:#DC2626;--radio:12px;--sombra:0 2px 12px rgba(0,0,0,.08)}
+<style>:root{--verde:#2D6A4F;--verde-cl:#40916C;--verde-xs:#D8F3DC;--dorado:#B5820A;--crema:#FAF7F2;--carbon:#1A1A1A;--gris:#6B7280;--gris-cl:#E5E7EB;--rojo:#DC2626;--radio:12px;--sombra:0 2px 12px rgba(0,0,0,.08)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Inter,sans-serif;background:var(--crema);color:var(--carbon);min-height:100vh}
 .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#1a3a2a 0%,#2D6A4F 60%,#40916C 100%);padding:24px}
@@ -27,9 +26,9 @@ body{font-family:Inter,sans-serif;background:var(--crema);color:var(--carbon);mi
 .sidebar{width:240px;min-height:100vh;background:linear-gradient(180deg,#1a3a2a 0%,#2D6A4F 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;transition:transform .3s}
 .sidebar-logo{padding:28px 20px 20px;border-bottom:1px solid rgba(255,255,255,.1)}
 .sidebar-logo .nombre{font-family:"Playfair Display",serif;color:#fff;font-size:17px;line-height:1.3}
-.rol-badge{display:inline-block;margin-top:6px;background:rgba(255,255,255,.15);color:#a7f3d0;font-size:11px;padding:2px 8px;border-radius:20px}
+.rol-badge{display:inline-block;margin-top:6px;background:rgba(255,255,255,.18);color:#a7f3d0;font-size:11px;padding:2px 8px;border-radius:20px}
 .nav{flex:1;padding:16px 0;overflow-y:auto}
-.nav-section{padding:8px 16px 4px;font-size:10px;color:rgba(255,255,255,.4);letter-spacing:1.5px;text-transform:uppercase}
+.nav-section{padding:8px 16px 4px;font-size:10px;color:rgba(255,255,255,.5);letter-spacing:1.5px;text-transform:uppercase}
 .nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;color:rgba(255,255,255,.75);cursor:pointer;font-size:14px;border-left:3px solid transparent;transition:all .15s;user-select:none}
 .nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
 .nav-item.activo{background:rgba(255,255,255,.12);color:#fff;border-left-color:#6EE7B7}
@@ -56,8 +55,9 @@ body{font-family:Inter,sans-serif;background:var(--crema);color:var(--carbon);mi
 .badge-verde{background:var(--verde-xs);color:var(--verde)}
 .badge-dorado{background:#FEF3C7;color:var(--dorado)}
 .badge-gris{background:var(--gris-cl);color:var(--gris)}
+.badge-rojo{background:#FEE2E2;color:var(--rojo)}
 .btn{padding:9px 18px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:500;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
-.btn-primary{background:var(--verde);color:#fff}.btn-primary:hover{background:#235c40}
+.btn-primary{background:var(--verde);color:#fff}.btn-primary:hover{background:var(--verde-cl)}
 .btn-secondary{background:var(--gris-cl);color:var(--carbon)}
 .btn-ghost{background:transparent;color:var(--verde);border:1px solid var(--verde)}.btn-ghost:hover{background:var(--verde-xs)}
 .btn-peligro{background:var(--rojo);color:#fff}
@@ -66,7 +66,7 @@ body{font-family:Inter,sans-serif;background:var(--crema);color:var(--carbon);mi
 .campo{margin-bottom:16px}
 .campo label{display:block;font-size:13px;font-weight:500;margin-bottom:6px;color:var(--carbon)}
 .campo input,.campo select,.campo textarea{width:100%;padding:10px 13px;border:1.5px solid var(--gris-cl);border-radius:8px;font-size:14px;font-family:Inter,sans-serif;background:#fff;transition:border-color .15s;color:var(--carbon)}
-.campo input:focus,.campo select:focus,.campo textarea:focus{outline:none;border-color:var(--verde)}
+.campo input:focus,.campo select:focus,.campo textarea:focus{outline:none;border-color:var(--verde);box-shadow:0 0 0 3px rgba(45,106,79,.12)}
 .campo textarea{min-height:100px;resize:vertical}
 .campo-hint{font-size:12px;color:var(--gris);margin-top:4px}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:32px}
@@ -102,11 +102,9 @@ body{font-family:Inter,sans-serif;background:var(--crema);color:var(--carbon);mi
 @keyframes spin{to{transform:rotate(360deg)}}
 .vacio{text-align:center;padding:40px 20px;color:var(--gris);font-size:14px}
 .carga-full{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--crema)}
-
 .ql-container{font-family:Inter,sans-serif;font-size:15px;border-bottom-left-radius:8px;border-bottom-right-radius:8px;border-color:var(--gris-cl);}
 .ql-toolbar{border-top-left-radius:8px;border-top-right-radius:8px;border-color:var(--gris-cl);background:#fafafa;}
 .ql-editor{min-height:180px;line-height:1.8;}
-.ql-editor:focus{outline:none;}
 .menu-toggle{display:none}
 .footer-app{text-align:center;padding:16px;font-size:11px;color:var(--gris);border-top:1px solid var(--gris-cl);margin-top:32px;line-height:1.6}
 .footer-app strong{color:var(--verde)}
@@ -143,12 +141,7 @@ body{font-family:Inter,sans-serif;background:var(--crema);color:var(--carbon);mi
 .stats-grid{grid-template-columns:1fr 1fr}
 .stat-num{font-size:24px}
 .page-title{font-size:18px}
-}
-</style>
-</head>
-<body>
-<div id="root"></div>
-<script>
+}</style><script>
 var _fc={
   apiKey:"AIzaSyAnIdMMFURTfF9D6S7y-O4xbSXHVdGBeAI",
   authDomain:"escuela-de-lideres-ba682.firebaseapp.com",
@@ -161,6 +154,9 @@ try{firebase.initializeApp(_fc);}catch(e){if(!e.message.includes("already"))thro
 window._auth=firebase.auth();
 window._db=firebase.firestore();
 </script>
+</head>
+<body>
+<div id="root"></div>
 <script type="text/babel">
 
 var _useState=React.useState,_useEffect=React.useEffect;
@@ -315,7 +311,7 @@ function Sidebar(p){
   return React.createElement("div",{className:"sidebar "+(p.open?"open":"")},
     React.createElement("div",{className:"sidebar-logo"},
       React.createElement("div",{style:{fontSize:28,marginBottom:6}},"\uD83C\uDF31"),
-      React.createElement("div",{className:"nombre"},"Escuela de Líderes"),
+      React.createElement("div",{className:"nombre"},"Escuela de L\u00EDderes"),
       React.createElement("span",{className:"rol-badge"},esA?"Coach":esG?"L\u00EDder de equipo":"L\u00EDder"),
       React.createElement("div",{style:{fontSize:12,color:"rgba(255,255,255,.5)",marginTop:6}},u.nombre)
     ),
@@ -1155,7 +1151,8 @@ function ModalEditarAsignacion(p){
 function PagAsignaciones(){
   var rs=useCol("el_sesiones");
   var rg=useCol("el_grupos");
-  var rl=useCol("el_usuarios",[["rol","==","lider"]]);
+  var rlTodos=useCol("el_usuarios");
+  var rl={docs:rlTodos.docs.filter(function(u){return u.rol==="lider"||(u.rol==="gerente"&&u.esLider);}),listo:rlTodos.listo};
   var ra=useCol("el_sesiones_asignadas");
   var sm=_useState(false),modal=sm[0],setModal=sm[1];
   var ss=_useState(null),sesionSel=ss[0],setSesionSel=ss[1];
@@ -1273,10 +1270,10 @@ function ProximaReunionLider(p){
   var r1=useCol("el_proxima_reunion",[["grupoId","==",u.grupoId||"__N__"]]);
   var r2=useCol("el_proxima_reunion",[["liderUid","==",u.uid||u.id]]);
   var reunion=r2.docs[0]||r1.docs[0];
-  if(!reunion||!reunion.fecha) return null;
   var hoy=new Date(); hoy.setHours(0,0,0,0);
-  var fechaR=new Date(reunion.fecha+"T00:00:00");
-  var diasRestantes=Math.ceil((fechaR-hoy)/(1000*60*60*24));
+  var fechaR=reunion&&reunion.fecha?new Date(reunion.fecha+"T00:00:00"):null;
+  var diasRestantes=fechaR?Math.ceil((fechaR-hoy)/(1000*60*60*24)):null;
+  if(!reunion||!reunion.fecha) return null;
   return React.createElement("div",{style:{marginTop:16,background:"linear-gradient(135deg,var(--verde),var(--verde-cl))",borderRadius:10,padding:14,color:"#fff"}},
     React.createElement("div",{style:{fontSize:11,opacity:.8,textTransform:"uppercase",letterSpacing:1,marginBottom:4}},"\uD83D\uDCC5 Pr\u00F3xima reuni\u00F3n con tu coach"),
     React.createElement("div",{style:{fontWeight:700,fontSize:18}},reunion.fecha),
@@ -1942,107 +1939,124 @@ function ResumenAsistencia(p){
   );
 }
 
+function LiderCard(p){
+  var abierto=p.abierto!==undefined?p.abierto:false;
+  var setAbierto=p.setAbierto||function(){};
+  var l=p.lider;
+  var uid=l.uid||l.id;
+  var sesAsig=p.sesionesLider(uid);
+  var sesResp=p.respuestasLider(uid);
+  var pctSes=sesAsig.length?Math.round(sesResp.length/sesAsig.length*100):0;
+  var pctH=p.pctHabitos(uid);
+  var sem=semaforo(pctSes,pctH);
+  var diasSinAct=p.diasSinActividad(uid);
+  var comps=p.compsPorLider(uid);
+  var compPend=comps.filter(function(c){return !c.cumplido;}).length;
+  var compCumpl=comps.filter(function(c){return c.cumplido;}).length;
+  var ultimaSesion=sesResp.length>0?sesResp[sesResp.length-1]:null;
+
+  return React.createElement("div",{style:{border:"1.5px solid "+sem.color,borderRadius:12,marginBottom:12,overflow:"hidden"}},
+    React.createElement("div",{style:{padding:16,background:sem.bg,cursor:"pointer"},onClick:function(){setAbierto();}},
+      React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}},
+        React.createElement("div",null,
+          React.createElement("div",{style:{fontWeight:700,fontSize:15,color:"var(--carbon)"}},l.nombre),
+          React.createElement("div",{style:{fontSize:11,color:"var(--gris)",marginTop:2}},l.correo||"")
+        ),
+        React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},
+          React.createElement("span",{style:{fontSize:20}},sem.ico),
+          React.createElement("span",{style:{fontSize:11,fontWeight:600,color:sem.color,background:"#fff",padding:"2px 8px",borderRadius:20,border:"1px solid "+sem.color}},sem.label),
+          React.createElement("span",{style:{fontSize:14,color:"var(--gris)",display:"inline-block",transform:abierto?"rotate(180deg)":"rotate(0deg)",transition:"transform .2s"}},"\u25BE")
+        )
+      ),
+      React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:8}},
+        React.createElement("div",{style:{background:"#fff",borderRadius:8,padding:"6px 8px",textAlign:"center"}},
+          React.createElement("div",{style:{fontSize:18,fontWeight:700,color:pctSes>=80?"#16a34a":pctSes>=50?"#d97706":"#dc2626"}},pctSes+"%"),
+          React.createElement("div",{style:{fontSize:10,color:"var(--gris)"}},sesResp.length+"/"+sesAsig.length+" ses.")
+        ),
+        React.createElement("div",{style:{background:"#fff",borderRadius:8,padding:"6px 8px",textAlign:"center"}},
+          React.createElement("div",{style:{fontSize:18,fontWeight:700,color:pctH!==null?(pctH>=80?"#16a34a":pctH>=50?"#d97706":"#dc2626"):"var(--gris)"}},pctH!==null?pctH+"%":"\u2014"),
+          React.createElement("div",{style:{fontSize:10,color:"var(--gris)"}},"% h\u00E1bitos")
+        ),
+        React.createElement("div",{style:{background:"#fff",borderRadius:8,padding:"6px 8px",textAlign:"center"}},
+          React.createElement("div",{style:{fontSize:18,fontWeight:700,color:diasSinAct===null?"var(--gris)":diasSinAct>7?"#dc2626":diasSinAct>3?"#d97706":"#16a34a"}},diasSinAct===null?"\u2014":diasSinAct+"d"),
+          React.createElement("div",{style:{fontSize:10,color:"var(--gris)"}},"sin act.")
+        ),
+        React.createElement("div",{style:{background:"#fff",borderRadius:8,padding:"6px 8px",textAlign:"center"}},
+          React.createElement("div",{style:{fontSize:18,fontWeight:700,color:"var(--carbon)"}},compCumpl+"/"+(compCumpl+compPend)),
+          React.createElement("div",{style:{fontSize:10,color:"var(--gris)"}},"compromisos")
+        )
+      ),
+      React.createElement("div",{style:{display:"flex",gap:6,flexWrap:"wrap"}},
+        ultimaSesion?React.createElement("span",{style:{fontSize:11,background:"#fff",padding:"2px 8px",borderRadius:6,color:"var(--gris)"}},ultimaSesion.fecha):
+        React.createElement("span",{style:{fontSize:11,background:"#fff",padding:"2px 8px",borderRadius:6,color:"#dc2626"}},"Sin sesiones respondidas"),
+        compPend>0?React.createElement("span",{style:{fontSize:11,background:"#fff",padding:"2px 8px",borderRadius:6,color:"#d97706"}},compPend+" comp. pendiente(s)"):null,
+        diasSinAct!==null&&diasSinAct>5?React.createElement("span",{style:{fontSize:11,background:"#fff",padding:"2px 8px",borderRadius:6,color:"#dc2626"}},diasSinAct+" d\u00EDas sin h\u00E1bitos"):null,
+        React.createElement("span",{style:{fontSize:11,background:"#fff",padding:"2px 8px",borderRadius:6,color:"var(--gris)",marginLeft:"auto"}},abierto?"Cerrar \u25B4":"Ver detalle \u25BE")
+      )
+    ),
+    abierto?React.createElement("div",{style:{background:"#fff",borderTop:"1px solid "+sem.color,padding:16}},
+      React.createElement("div",{style:{marginBottom:14}},
+        React.createElement("div",{style:{fontSize:13,fontWeight:600,color:"var(--verde)",marginBottom:8}},"Sesiones"),
+        sesAsig.length===0?React.createElement("div",{style:{fontSize:12,color:"var(--gris)"}},"Sin sesiones"):
+        React.createElement("table",{className:"tabla"},
+          React.createElement("thead",null,React.createElement("tr",null,
+            React.createElement("th",null,"Sesi\u00F3n"),
+            React.createElement("th",null,"Fecha"),
+            React.createElement("th",{style:{textAlign:"center"}},"Respondi\u00F3"),
+            React.createElement("th",{style:{textAlign:"center"}},"Asisti\u00F3")
+          )),
+          React.createElement("tbody",null,sesAsig.map(function(sa){
+            var resp=sesResp.find(function(r){return r.sesionId===sa.sesionId;});
+            var asist=sa.liderUid?sa.asistio:(sa.asistenciaPorLider&&sa.asistenciaPorLider[uid]);
+            return React.createElement("tr",{key:sa.id},
+              React.createElement("td",null,sa.titulo||"Sesi\u00F3n "+sa.numero),
+              React.createElement("td",null,sa.fecha||"Sin fecha"),
+              React.createElement("td",{style:{textAlign:"center"}},resp?React.createElement("span",{className:"badge badge-verde"},"\u2713 S\u00ED"):React.createElement("span",{className:"badge badge-gris"},"No")),
+              React.createElement("td",{style:{textAlign:"center"}},asist===true?React.createElement("span",{className:"badge badge-verde"},"\u2713"):asist===false?React.createElement("span",{className:"badge badge-rojo"},"\u2717"):React.createElement("span",{style:{fontSize:11,color:"var(--gris)"}},"?"))
+            );
+          }))
+        )
+      ),
+      React.createElement("div",null,
+        React.createElement("div",{style:{fontSize:13,fontWeight:600,color:"var(--verde)",marginBottom:8}},"H\u00E1bitos este mes"),
+        p.habitosLider(uid).length===0?React.createElement("div",{style:{fontSize:12,color:"var(--gris)"}},"Sin h\u00E1bitos"):
+        p.habitosLider(uid).map(function(h){
+          var diasMes=new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate();
+          var hechos=p.checksLider(uid).filter(function(d){return d.habitoId===h.id;}).length;
+          var pct=Math.round(hechos/diasMes*100);
+          return React.createElement("div",{key:h.id,style:{display:"flex",justifyContent:"space-between",padding:"6px 0",borderBottom:"1px solid var(--gris-cl)"}},
+            React.createElement("span",{style:{fontSize:13}},h.descripcion),
+            React.createElement("span",{className:"badge "+(pct>=80?"badge-verde":pct>=50?"badge-dorado":"badge-rojo")},pct+"% \u2014 "+hechos+"/"+diasMes)
+          );
+        })
+      )
+    ):null
+  );
+}
+
 function TablaLideres(p){
-  var sd=React.useState(null),detalleAbierto=sd[0],setDetalleAbierto=sd[1];
+  var sa=React.useState({}),abiertos=sa[0],setAbiertos=sa[1];
+
+  function toggleLider(id){
+    setAbiertos(function(prev){var x=Object.assign({},prev);x[id]=!x[id];return x;});
+  }
+  function expandirTodos(){
+    var x={};p.lideres.forEach(function(l){x[l.id]=true;});setAbiertos(x);
+  }
+  function colapsarTodos(){
+    var x={};p.lideres.forEach(function(l){x[l.id]=false;});setAbiertos(x);
+  }
+  var algunoAbierto=p.lideres.some(function(l){return abiertos[l.id];});
 
   return React.createElement("div",null,
+    p.lideres.length>1?React.createElement("div",{className:"no-print",style:{display:"flex",gap:8,marginBottom:12,justifyContent:"flex-end"}},
+      React.createElement("button",{className:"btn btn-ghost btn-sm",onClick:expandirTodos},"\u25BC Expandir todos"),
+      algunoAbierto?React.createElement("button",{className:"btn btn-ghost btn-sm",onClick:colapsarTodos},"\u25B2 Colapsar todos"):null
+    ):null,
     p.lideres.map(function(l){
-      var uid=l.uid||l.id;
-      var sesAsig=p.sesionesLider(uid);
-      var sesResp=p.respuestasLider(uid);
-      var pctSes=sesAsig.length?Math.round(sesResp.length/sesAsig.length*100):0;
-      var pctH=p.pctHabitos(uid);
-      var sem=semaforo(pctSes,pctH);
-      var diasSinAct=p.diasSinActividad(uid);
-      var comps=p.compsPorLider(uid);
-      var compPend=comps.filter(function(c){return !c.cumplido;}).length;
-      var compCumpl=comps.filter(function(c){return c.cumplido;}).length;
-      var ultimaSesion=sesResp.length>0?sesResp[sesResp.length-1]:null;
-      var abierto=detalleAbierto===uid;
-
-      return React.createElement("div",{key:l.id,style:{border:"1.5px solid "+sem.color,borderRadius:12,marginBottom:12,overflow:"hidden"}},
-        // Tarjeta principal
-        React.createElement("div",{style:{padding:16,background:sem.bg,cursor:"pointer"},onClick:function(){setDetalleAbierto(abierto?null:uid);}},
-          React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}},
-            React.createElement("div",null,
-              React.createElement("div",{style:{fontWeight:700,fontSize:15,color:"var(--carbon)"}},l.nombre),
-              React.createElement("div",{style:{fontSize:11,color:"var(--gris)",marginTop:2}},l.correo||"")
-            ),
-            React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},
-              React.createElement("span",{style:{fontSize:20}},sem.ico),
-              React.createElement("span",{style:{fontSize:11,fontWeight:600,color:sem.color,background:"#fff",padding:"2px 8px",borderRadius:20,border:"1px solid "+sem.color}},sem.label),
-              React.createElement("span",{style:{fontSize:16,color:"var(--gris)",transition:"transform .2s",display:"inline-block",transform:abierto?"rotate(180deg)":"rotate(0deg)"}},"▾")
-            )
-          ),
-          React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:8}},
-            React.createElement("div",{style:{background:"#fff",borderRadius:8,padding:"6px 8px",textAlign:"center"}},
-              React.createElement("div",{style:{fontSize:18,fontWeight:700,color:pctSes>=80?"#16a34a":pctSes>=50?"#d97706":"#dc2626"}},pctSes+"%"),
-              React.createElement("div",{style:{fontSize:10,color:"var(--gris)"}},sesResp.length+"/"+sesAsig.length+" ses.")
-            ),
-            React.createElement("div",{style:{background:"#fff",borderRadius:8,padding:"6px 8px",textAlign:"center"}},
-              React.createElement("div",{style:{fontSize:18,fontWeight:700,color:pctH!==null?(pctH>=80?"#16a34a":pctH>=50?"#d97706":"#dc2626"):"var(--gris)"}},pctH!==null?pctH+"%":"—"),
-              React.createElement("div",{style:{fontSize:10,color:"var(--gris)"}},"% hábitos")
-            ),
-            React.createElement("div",{style:{background:"#fff",borderRadius:8,padding:"6px 8px",textAlign:"center"}},
-              React.createElement("div",{style:{fontSize:18,fontWeight:700,color:diasSinAct===null?"var(--gris)":diasSinAct>7?"#dc2626":diasSinAct>3?"#d97706":"#16a34a"}},diasSinAct===null?"—":diasSinAct+"d"),
-              React.createElement("div",{style:{fontSize:10,color:"var(--gris)"}},"sin act.")
-            ),
-            React.createElement("div",{style:{background:"#fff",borderRadius:8,padding:"6px 8px",textAlign:"center"}},
-              React.createElement("div",{style:{fontSize:18,fontWeight:700,color:"var(--carbon)"}},compCumpl+"/"+(compCumpl+compPend)),
-              React.createElement("div",{style:{fontSize:10,color:"var(--gris)"}},"compromisos")
-            )
-          ),
-          React.createElement("div",{style:{display:"flex",gap:6,flexWrap:"wrap"}},
-            ultimaSesion?React.createElement("span",{style:{fontSize:11,background:"#fff",padding:"2px 8px",borderRadius:6,color:"var(--gris)"}},sesResp.length>0?sesResp[sesResp.length-1].fecha:"Sin responder"):
-            React.createElement("span",{style:{fontSize:11,background:"#fff",padding:"2px 8px",borderRadius:6,color:"#dc2626"}},"Sin sesiones respondidas"),
-            compPend>0?React.createElement("span",{style:{fontSize:11,background:"#fff",padding:"2px 8px",borderRadius:6,color:"#d97706"}},compPend+" comp. pendiente(s)"):null,
-            diasSinAct!==null&&diasSinAct>5?React.createElement("span",{style:{fontSize:11,background:"#fff",padding:"2px 8px",borderRadius:6,color:"#dc2626"}},diasSinAct+" días sin hábitos"):null,
-            React.createElement("span",{style:{fontSize:11,background:"#fff",padding:"2px 8px",borderRadius:6,color:"var(--gris)",marginLeft:"auto"}},abierto?"Cerrar detalle ▴":"Ver detalle ▾")
-          )
-        ),
-        // Panel de detalle expandible
-        abierto?React.createElement("div",{style:{background:"#fff",borderTop:"1px solid "+sem.color,padding:16}},
-          // Sesiones
-          React.createElement("div",{style:{marginBottom:16}},
-            React.createElement("div",{style:{fontSize:13,fontWeight:600,color:"var(--verde)",marginBottom:8}},"Sesiones"),
-            sesAsig.length===0?React.createElement("div",{style:{fontSize:12,color:"var(--gris)"}},"Sin sesiones"):
-            React.createElement("table",{className:"tabla"},
-              React.createElement("thead",null,React.createElement("tr",null,
-                React.createElement("th",null,"Sesión"),
-                React.createElement("th",null,"Fecha"),
-                React.createElement("th",{style:{textAlign:"center"}},"Respondió"),
-                React.createElement("th",{style:{textAlign:"center"}},"Asistió")
-              )),
-              React.createElement("tbody",null,sesAsig.map(function(sa){
-                var resp=sesResp.find(function(r){return r.sesionId===sa.sesionId;});
-                var asist=sa.liderUid?sa.asistio:(sa.asistenciaPorLider&&sa.asistenciaPorLider[uid]);
-                return React.createElement("tr",{key:sa.id},
-                  React.createElement("td",null,sa.titulo||"Sesión "+sa.numero),
-                  React.createElement("td",null,sa.fecha||"Sin fecha"),
-                  React.createElement("td",{style:{textAlign:"center"}},resp?React.createElement("span",{className:"badge badge-verde"},"✓ Sí"):React.createElement("span",{className:"badge badge-gris"},"No")),
-                  React.createElement("td",{style:{textAlign:"center"}},asist===true?React.createElement("span",{className:"badge badge-verde"},"✓ Sí"):asist===false?React.createElement("span",{className:"badge badge-rojo"},"✗ No"):React.createElement("span",{style:{fontSize:11,color:"var(--gris)"}},"?"))
-                );
-              }))
-            )
-          ),
-          // Habitos
-          React.createElement("div",null,
-            React.createElement("div",{style:{fontSize:13,fontWeight:600,color:"var(--verde)",marginBottom:8}},"Hábitos este mes"),
-            p.habitosLider(uid).length===0?React.createElement("div",{style:{fontSize:12,color:"var(--gris)"}},"Sin hábitos"):
-            p.habitosLider(uid).map(function(h){
-              var diasMes=new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate();
-              var hechos=p.checksLider(uid).filter(function(d){return d.habitoId===h.id;}).length;
-              var pct=Math.round(hechos/diasMes*100);
-              return React.createElement("div",{key:h.id,style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:"1px solid var(--gris-cl)"}},
-                React.createElement("span",{style:{fontSize:13}},h.descripcion),
-                React.createElement("span",{className:"badge "+(pct>=80?"badge-verde":pct>=50?"badge-dorado":"badge-rojo")},pct+"% — "+hechos+"/"+diasMes)
-              );
-            })
-          )
-        ):null
-      );
+      return React.createElement(LiderCard,Object.assign({key:l.id,lider:l,abierto:!!abiertos[l.id],setAbierto:function(){toggleLider(l.id);}},p));
     }),
-    p.lideres.length===0?React.createElement("div",{className:"vacio"},"Sin líderes en este grupo"):null
+    p.lideres.length===0?React.createElement("div",{className:"vacio"},"Sin l\u00EDderes en este grupo"):null
   );
 }
 
@@ -2062,6 +2076,10 @@ function PagReportes(p){
   var sger=_useState(""),gerenteSel=sger[0],setGerenteSel=sger[1];
   var sl=_useState(null),liderSel=sl[0],setLiderSel=sl[1];
   var sm=_useState(getMesActual()),mes=sm[0],setMes=sm[1];
+  var sab=_useState({}),abiertos=sab[0],setAbiertos=sab[1];
+  function toggleLider(id){setAbiertos(function(prev){var x=Object.assign({},prev);x[id]=!x[id];return x;});}
+  function expandirTodos(lideres){var x=Object.assign({},abiertos);lideres.forEach(function(l){x[l.id]=true;});setAbiertos(x);}
+  function colapsarTodos(lideres){var x=Object.assign({},abiertos);lideres.forEach(function(l){x[l.id]=false;});setAbiertos(x);}
 
   function getMesActual(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");}
 
@@ -2167,14 +2185,14 @@ function PagReportes(p){
             React.createElement("div",{className:"tarjeta-titulo",style:{marginBottom:0}},nomGrupoSel),
             React.createElement("span",{style:{fontSize:13,color:"var(--gris)",fontWeight:600}},mes)
           ),
-          React.createElement(TablaLideres,{lideres:lideresFiltrados,sesionesLider:sesionesLider,respuestasLider:respuestasLider,pctHabitos:pctHabitos,diasSinActividad:diasSinActividad,compsPorLider:compsPorLider,habitosLider:function(uid){return rh.docs.filter(function(h){return (h.liderUid===uid)&&h.activo!==false;});},checksLider:function(uid){var mes=new Date().getFullYear()+"-"+String(new Date().getMonth()+1).padStart(2,"0");return rd.docs.filter(function(d){return d.liderUid===uid&&d.fecha&&d.fecha.startsWith(mes)&&d.completado;});},esAdmin:esAdmin,onDetalle:function(id){setLiderSel(id);}})
+          React.createElement(TablaLideres,{lideres:lideresFiltrados,sesionesLider:sesionesLider,respuestasLider:respuestasLider,pctHabitos:pctHabitos,diasSinActividad:diasSinActividad,compsPorLider:compsPorLider,habitosLider:function(uid){return rh.docs.filter(function(h){return (h.liderUid===uid)&&h.activo!==false;});},checksLider:function(uid){var mes=new Date().getFullYear()+"-"+String(new Date().getMonth()+1).padStart(2,"0");return rd.docs.filter(function(d){return d.liderUid===uid&&d.fecha&&d.fecha.startsWith(mes)&&d.completado;});},esAdmin:esAdmin,onDetalle:function(id){setLiderSel(id);},abiertos:abiertos,toggleLider:toggleLider,expandirTodos:expandirTodos,colapsarTodos:colapsarTodos})
         )
       :
         gruposFiltrados.map(function(g){
           var lideresGrupo=lideresFiltrados.filter(function(l){return l.grupoId===g.id;});
           return React.createElement("div",{key:g.id,className:"tarjeta",style:{marginBottom:16}},
             React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,paddingBottom:10,borderBottom:"2px solid var(--verde-xs)"}},
-              React.createElement("div",{className:"tarjeta-titulo",style:{marginBottom:0,color:"var(--verde)"}},g.nombre),
+              React.createElement("div",{className:"tarjeta-titulo",style:{marginBottom:0,color:"var(--primario)"}},g.nombre),
               React.createElement("div",{style:{display:"flex",gap:8,alignItems:"center"}},
                 React.createElement("span",{className:"badge badge-gris"},lideresGrupo.length+" l\u00EDder(es)"),
                 React.createElement("span",{style:{fontSize:12,color:"var(--gris)"}},mes)
@@ -2182,7 +2200,7 @@ function PagReportes(p){
             ),
             lideresGrupo.length===0
               ? React.createElement("div",{className:"vacio"},"Sin l\u00EDderes en este grupo")
-              : React.createElement(TablaLideres,{lideres:lideresGrupo,sesionesLider:sesionesLider,respuestasLider:respuestasLider,pctHabitos:pctHabitos,diasSinActividad:diasSinActividad,compsPorLider:compsPorLider,habitosLider:function(uid){return rh.docs.filter(function(h){return (h.liderUid===uid)&&h.activo!==false;});},checksLider:function(uid){var mes=new Date().getFullYear()+"-"+String(new Date().getMonth()+1).padStart(2,"0");return rd.docs.filter(function(d){return d.liderUid===uid&&d.fecha&&d.fecha.startsWith(mes)&&d.completado;});},esAdmin:esAdmin,onDetalle:function(id){setLiderSel(id);}})
+              : React.createElement(TablaLideres,{lideres:lideresGrupo,sesionesLider:sesionesLider,respuestasLider:respuestasLider,pctHabitos:pctHabitos,diasSinActividad:diasSinActividad,compsPorLider:compsPorLider,habitosLider:function(uid){return rh.docs.filter(function(h){return (h.liderUid===uid)&&h.activo!==false;});},checksLider:function(uid){var mes=new Date().getFullYear()+"-"+String(new Date().getMonth()+1).padStart(2,"0");return rd.docs.filter(function(d){return d.liderUid===uid&&d.fecha&&d.fecha.startsWith(mes)&&d.completado;});},esAdmin:esAdmin,onDetalle:function(id){setLiderSel(id);},abiertos:abiertos,toggleLider:toggleLider,expandirTodos:expandirTodos,colapsarTodos:colapsarTodos})
           );
         })
     ),
