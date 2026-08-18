@@ -1955,7 +1955,7 @@ function LiderCard(p){
   var compCumpl=comps.filter(function(c){return c.cumplido;}).length;
   var ultimaSesion=sesResp.length>0?sesResp[sesResp.length-1]:null;
 
-  return React.createElement("div",{style:{border:"1.5px solid "+sem.color,borderRadius:12,marginBottom:12,overflow:"hidden"}},
+  return React.createElement("div",{style:{border:"1.5px solid "+sem.color,borderRadius:12,marginBottom:12,overflow:"hidden"},className:abierto?"lider-card-abierto":"lider-card-cerrado"},
     React.createElement("div",{style:{padding:16,background:sem.bg,cursor:"pointer"},onClick:function(){setAbierto();}},
       React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}},
         React.createElement("div",null,
@@ -2054,7 +2054,10 @@ function TablaLideres(p){
       algunoAbierto?React.createElement("button",{className:"btn btn-ghost btn-sm",onClick:colapsarTodos},"\u25B2 Colapsar todos"):null
     ):null,
     p.lideres.map(function(l){
-      return React.createElement(LiderCard,Object.assign({key:l.id,lider:l,abierto:!!abiertos[l.id],setAbierto:function(){toggleLider(l.id);}},p));
+      var ab=!!abiertos[l.id];
+      return React.createElement("div",{key:l.id,"data-print":ab?"si":"no"},
+        React.createElement(LiderCard,Object.assign({lider:l,abierto:ab,setAbierto:function(){toggleLider(l.id);}},p))
+      );
     }),
     p.lideres.length===0?React.createElement("div",{className:"vacio"},"Sin l\u00EDderes en este grupo"):null
   );
@@ -2080,6 +2083,7 @@ function PagReportes(p){
   function toggleLider(id){setAbiertos(function(prev){var x=Object.assign({},prev);x[id]=!x[id];return x;});}
   function expandirTodos(lideres){var x=Object.assign({},abiertos);lideres.forEach(function(l){x[l.id]=true;});setAbiertos(x);}
   function colapsarTodos(lideres){var x=Object.assign({},abiertos);lideres.forEach(function(l){x[l.id]=false;});setAbiertos(x);}
+
 
   function getMesActual(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");}
 
@@ -2133,7 +2137,20 @@ function PagReportes(p){
     return Math.round(hechos/posible*100);
   }
 
-  function imprimir(){window.print();}
+  function imprimir(){
+    // Ocultar temporalmente las tarjetas no expandidas via style
+    var tarjetas = document.querySelectorAll('[data-print]');
+    var ocultas = [];
+    tarjetas.forEach(function(el){
+      if(el.getAttribute('data-print')==='no'){
+        el.style.display='none';
+        ocultas.push(el);
+      }
+    });
+    window.print();
+    // Restaurar
+    ocultas.forEach(function(el){ el.style.display=''; });
+  }
   var lider=liderSel?lideres.find(function(l){return l.id===liderSel;}):null;
   var nomGrupoSel=grupoEfectivo?(rg.docs.find(function(g){return g.id===grupoEfectivo;})||{}).nombre||"":"Todos los grupos";
 
