@@ -765,10 +765,29 @@ function FormUsuario(p){
       db.collection("el_usuarios").doc(p.inicial.id).update(getDatos()).then(function(){setAviso("Usuario actualizado correctamente.");setBusy(false);}).catch(function(e){setErr(e.message);setBusy(false);});
     } else {
       auth.createUserWithEmailAndPassword(f.correo,f.clave).then(function(cred){
-        var uid=cred.user.uid;
-        return db.collection("el_usuarios").doc(uid).set(Object.assign({uid:uid,creadoEn:FSV.serverTimestamp()},getDatos()));
+        var nuevoUid=cred.user.uid;
+        var correoUser=f.correo.trim().toLowerCase();
+        var colecciones=["el_respuestas","el_habitos_asignados","el_habitos_dia","el_compromisos_coach",
+          "el_sesiones_asignadas","el_obs_habito_coach","el_comentarios_coach","el_retroalimentacion",
+          "el_notas_coach","el_proxima_reunion","el_compromisos"];
+        return db.collection("el_usuarios").where("correo","==",correoUser).get().then(function(snap){
+          var uidViejo=null;
+          snap.docs.forEach(function(d){if(d.id!==nuevoUid) uidViejo=d.id;});
+          var promesas=[];
+          if(uidViejo){
+            colecciones.forEach(function(col){
+              promesas.push(db.collection(col).where("liderUid","==",uidViejo).get().then(function(s){
+                var batch=db.batch();s.docs.forEach(function(d){batch.update(d.ref,{liderUid:nuevoUid});});return batch.commit();
+              }).catch(function(){}));
+            });
+            promesas.push(db.collection("el_usuarios").doc(uidViejo).delete().catch(function(){}));
+          }
+          return Promise.all(promesas).then(function(){
+            return db.collection("el_usuarios").doc(nuevoUid).set(Object.assign({uid:nuevoUid,creadoEn:FSV.serverTimestamp()},getDatos()));
+          });
+        });
       }).then(function(){
-        setAviso("Usuario creado correctamente.");setBusy(false);
+        setAviso("Usuario creado. Historial migrado correctamente.");setBusy(false);
         setF({nombre:"",correo:"",rol:"lider",empresaId:"",grupoId:"",clave:"",esLider:false,gruposSupervisa:[]});
       }).catch(function(e){
         var m=e.message||"";
