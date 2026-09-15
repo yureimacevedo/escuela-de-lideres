@@ -207,6 +207,72 @@ function Confirmar(p){
   );
 }
 
+function PaginaResetPassword(p){
+  var oobCode=p.oobCode;
+  var spass=_useState(""),pass=spass[0],setPass=spass[1];
+  var spass2=_useState(""),pass2=spass2[0],setPass2=spass2[1];
+  var sb=_useState(false),busy=sb[0],setBusy=sb[1];
+  var sok=_useState(""),ok=sok[0],setOk=sok[1];
+  var serr=_useState(""),err=serr[0],setErr=serr[1];
+  var svalid=_useState(null),valido=svalid[0],setValido=svalid[1];
+  var semail=_useState(""),email=semail[0],setEmail=semail[1];
+
+  _useEffect(function(){
+    if(!oobCode) return;
+    auth.verifyPasswordResetCode(oobCode).then(function(e){
+      setEmail(e);
+      setValido(true);
+    }).catch(function(){
+      setValido(false);
+    });
+  },[oobCode]);
+
+  function cambiar(){
+    if(!pass||pass.length<6){setErr("La contrase\u00F1a debe tener al menos 6 caracteres");return;}
+    if(pass!==pass2){setErr("Las contrase\u00F1as no coinciden");return;}
+    setBusy(true);setErr("");
+    auth.confirmPasswordReset(oobCode,pass).then(function(){
+      setOk("Contrase\u00F1a cambiada exitosamente. Ya puedes ingresar.");
+      setBusy(false);
+    }).catch(function(e){
+      setErr("Error al cambiar la contrase\u00F1a. Solicita un nuevo enlace.");
+      setBusy(false);
+    });
+  }
+
+  return React.createElement("div",{className:"login-wrap"},
+    React.createElement("div",{className:"login-card"},
+      React.createElement("div",{className:"login-logo"},
+        React.createElement("div",{style:{fontSize:40,marginBottom:8}},"\uD83C\uDF31"),
+        React.createElement("div",{className:"marca"},"Escuela de L\u00EDderes"),
+        React.createElement("div",{className:"sub"},"Coaching Empresarial")
+      ),
+      valido===null?React.createElement("div",{className:"spinner"}):
+      valido===false?React.createElement("div",null,
+        React.createElement("div",{className:"alerta alerta-error"},"Este enlace ya fue usado o ha vencido. Solicita uno nuevo desde la pantalla de ingreso."),
+        React.createElement("button",{className:"btn btn-primary",style:{width:"100%",marginTop:12},onClick:function(){window.location.href=window.location.origin+window.location.pathname.replace(/\/[^/]*$/,'/');}},"\u2190 Volver al ingreso")
+      ):
+      ok?React.createElement("div",null,
+        React.createElement("div",{className:"alerta alerta-ok"},ok),
+        React.createElement("button",{className:"btn btn-primary",style:{width:"100%",marginTop:12},onClick:function(){window.location.href=window.location.origin+window.location.pathname.replace(/\/[^/]*$/,'/');}},"\u2192 Ir al ingreso")
+      ):
+      React.createElement("div",null,
+        React.createElement("div",{style:{fontSize:14,color:"var(--gris)",marginBottom:16,textAlign:"center"}},"Nueva contrase\u00F1a para "+email),
+        err?React.createElement("div",{className:"alerta alerta-error"},err):null,
+        React.createElement("div",{className:"campo"},
+          React.createElement("label",null,"Nueva contrase\u00F1a"),
+          React.createElement("input",{type:"password",value:pass,onChange:function(e){setPass(e.target.value);},placeholder:"M\u00EDnimo 6 caracteres"})
+        ),
+        React.createElement("div",{className:"campo"},
+          React.createElement("label",null,"Confirmar contrase\u00F1a"),
+          React.createElement("input",{type:"password",value:pass2,onChange:function(e){setPass2(e.target.value);},placeholder:"Repite la contrase\u00F1a"})
+        ),
+        React.createElement("button",{className:"btn btn-primary",style:{width:"100%"},onClick:cambiar,disabled:busy},busy?"Cambiando...":"Cambiar contrase\u00F1a")
+      )
+    )
+  );
+}
+
 function RecuperarClave(){
   var sm=_useState(false),mostrar=sm[0],setMostrar=sm[1];
   var se=_useState(""),email=se[0],setEmail=se[1];
@@ -217,7 +283,8 @@ function RecuperarClave(){
   function enviar(){
     if(!email.trim()){setErr("Escribe tu correo");return;}
     setBusy(true);setErr("");
-    auth.sendPasswordResetEmail(email).then(function(){
+    var actionSettings={url:window.location.origin+window.location.pathname,handleCodeInApp:false};
+    auth.sendPasswordResetEmail(email,actionSettings).then(function(){
       setOk("Correo enviado. Revisa tu bandeja de entrada y spam.");
       setBusy(false);
     }).catch(function(e){
