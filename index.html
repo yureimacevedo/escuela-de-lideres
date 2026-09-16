@@ -605,6 +605,76 @@ function FormGrupo(p){
   );
 }
 
+function ModalMigrarUID(p){
+  var sv=_useState(""),uidViejo=sv[0],setUidViejo=sv[1];
+  var sn=_useState(""),uidNuevo=sn[0],setUidNuevo=sn[1];
+  var sb=_useState(false),busy=sb[0],setBusy=sb[1];
+  var sok=_useState(""),ok=sok[0],setOk=sok[1];
+  var serr=_useState(""),err=serr[0],setErr=serr[1];
+  var slog=_useState([]),log=slog[0],setLog=slog[1];
+
+  var colecciones=["el_respuestas","el_habitos_asignados","el_habitos_dia","el_compromisos_coach",
+    "el_sesiones_asignadas","el_obs_habito_coach","el_comentarios_coach","el_retroalimentacion",
+    "el_notas_coach","el_proxima_reunion","el_compromisos","el_habitos_dia"];
+
+  function migrar(){
+    if(!uidViejo.trim()||!uidNuevo.trim()){setErr("Ingresa ambos UIDs");return;}
+    setBusy(true);setErr("");setOk("");setLog([]);
+    var promesas=[];
+    var logs=[];
+    colecciones.forEach(function(col){
+      promesas.push(
+        db.collection(col).where("liderUid","==",uidViejo.trim()).get().then(function(snap){
+          if(snap.empty){logs.push(col+": sin documentos");return;}
+          var batch=db.batch();
+          snap.docs.forEach(function(d){batch.update(d.ref,{liderUid:uidNuevo.trim()});});
+          return batch.commit().then(function(){logs.push(col+": "+snap.size+" documentos migrados");});
+        }).catch(function(e){logs.push(col+": error - "+e.message);})
+      );
+    });
+    // Migrar documento de el_usuarios
+    promesas.push(
+      db.collection("el_usuarios").doc(uidViejo.trim()).get().then(function(d){
+        if(d.exists){
+          var data=d.data();
+          data.uid=uidNuevo.trim();
+          return db.collection("el_usuarios").doc(uidNuevo.trim()).set(data).then(function(){
+            return db.collection("el_usuarios").doc(uidViejo.trim()).delete();
+          }).then(function(){logs.push("el_usuarios: documento migrado");});
+        } else {
+          logs.push("el_usuarios: no se encontro documento con uid viejo");
+        }
+      }).catch(function(e){logs.push("el_usuarios: error - "+e.message);})
+    );
+    Promise.all(promesas).then(function(){
+      setLog(logs);
+      setOk("Migracion completada");
+      setBusy(false);
+    });
+  }
+
+  return React.createElement(Modal,{titulo:"Migrar UID de usuario",onClose:p.onClose},
+    React.createElement("div",{className:"alerta alerta-info",style:{fontSize:13}},"Usa esta herramienta cuando recreaste un usuario y necesitas mover su historial del UID viejo al nuevo."),
+    err?React.createElement("div",{className:"alerta alerta-error"},err):null,
+    ok?React.createElement("div",{className:"alerta alerta-ok"},ok):null,
+    React.createElement("div",{className:"campo"},
+      React.createElement("label",null,"UID viejo (antes de recrear)"),
+      React.createElement("input",{value:uidViejo,onChange:function(e){setUidViejo(e.target.value);},placeholder:"Pega el UID anterior del usuario"})
+    ),
+    React.createElement("div",{className:"campo"},
+      React.createElement("label",null,"UID nuevo (actual en Firebase Auth)"),
+      React.createElement("input",{value:uidNuevo,onChange:function(e){setUidNuevo(e.target.value);},placeholder:"Pega el UID actual del usuario"})
+    ),
+    React.createElement("button",{className:"btn btn-primary",onClick:migrar,disabled:busy||!uidViejo.trim()||!uidNuevo.trim()},busy?"Migrando...":"Migrar historial"),
+    log.length>0?React.createElement("div",{style:{marginTop:16,background:"var(--crema)",borderRadius:8,padding:12,fontSize:12,fontFamily:"monospace"}},
+      log.map(function(l,i){return React.createElement("div",{key:i},l);})
+    ):null,
+    React.createElement("div",{className:"modal-footer"},
+      React.createElement("button",{className:"btn btn-secondary",onClick:p.onClose},"Cerrar")
+    )
+  );
+}
+
 function PagUsuarios(){
   var r=useCol("el_usuarios"),rg=useCol("el_grupos"),re=useCol("el_empresas"),crud=useCRUD("el_usuarios");
   var sm=_useState(false),modal=sm[0],setModal=sm[1];
