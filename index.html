@@ -217,7 +217,7 @@ function RecuperarClave(){
   var se=_useState(""),email=se[0],setEmail=se[1];
   var sok=_useState(""),ok=sok[0],setOk=sok[1];
   var serr=_useState(""),err=serr[0],setErr=serr[1];
-  var sb=_useState(false),busy=sb[0],setBusy=sb[1];var sa=_useState(false),aceptado=sa[0],setAceptado=sa[1];
+  var sb=_useState(false),busy=sb[0],setBusy=sb[1];
 
   function enviar(){
     if(!email.trim()){setErr("Escribe tu correo");return;}
@@ -260,6 +260,7 @@ function Login(p){
   var sp=_useState(""),pass=sp[0],setPass=sp[1];
   var serr=_useState(""),err=serr[0],setErr=serr[1];
   var sb=_useState(false),busy=sb[0],setBusy=sb[1];
+  var sacp=_useState(false),aceptado=sacp[0],setAceptado=sacp[1];
   function submit(e){
     e.preventDefault();setErr("");setBusy(true);
     auth.signInWithEmailAndPassword(email,pass).then(function(c){
@@ -287,9 +288,7 @@ function Login(p){
         React.createElement("div",{className:"campo"},React.createElement("label",null,"Contrasena"),React.createElement("input",{type:"password",value:pass,onChange:function(e){setPass(e.target.value);},placeholder:"........",required:true})),
         React.createElement("div",{style:{display:"flex",alignItems:"flex-start",gap:"0.5rem",marginBottom:"0.75rem",padding:"0.6rem",background:"#FFF8F0",borderRadius:"8px",border:"1px solid #FDE68A"}},
         React.createElement("input",{type:"checkbox",id:"terminos-el",checked:aceptado,onChange:function(e){setAceptado(e.target.checked);},style:{marginTop:"0.2rem",cursor:"pointer"}}),
-        React.createElement("label",{htmlFor:"terminos-el",style:{fontSize:"0.75rem",color:"#374151",cursor:"pointer",lineHeight:1.5}},
-          "Acepto el uso responsable de esta plataforma. La información aquí contenida es confidencial y de uso exclusivo de la entidad. Su divulgación no autorizada viola la Circular 036 de Supersolidaria."
-        )
+        React.createElement("label",{htmlFor:"terminos-el",style:{fontSize:"0.75rem",color:"#374151",cursor:"pointer",lineHeight:1.5}},"Acepto el uso responsable de esta plataforma. La información aquí contenida es confidencial y de uso exclusivo de la entidad. Su divulgación no autorizada viola la Circular 036 de Supersolidaria.")
       ),
       React.createElement("button",{className:"btn btn-primary",style:{width:"100%",padding:"12px",justifyContent:"center",marginTop:8},disabled:busy||!aceptado},busy?"Ingresando...":"Ingresar")
       ),
