@@ -2,11 +2,16 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8" />
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta http-equiv="X-Frame-Options" content="DENY">
+<meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+<meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Escuela de Lideres</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
 <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<script>(function(){var T=30*60*1000,t,a=false;function r(){if(!a)return;clearTimeout(t);t=setTimeout(function(){try{firebase.auth().signOut();}catch(e){}alert('Tu sesión se cerró por inactividad (30 minutos). Ingresa de nuevo.');},T);}['click','keydown','mousemove','scroll','touchstart'].forEach(function(e){document.addEventListener(e,r,{passive:true});});document.addEventListener('DOMContentLoaded',function(){try{firebase.auth().onAuthStateChanged(function(u){a=!!u;if(a)r();else clearTimeout(t);});}catch(e){}});})();</script>
 <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -207,84 +212,17 @@ function Confirmar(p){
   );
 }
 
-function PaginaResetPassword(p){
-  var oobCode=p.oobCode;
-  var spass=_useState(""),pass=spass[0],setPass=spass[1];
-  var spass2=_useState(""),pass2=spass2[0],setPass2=spass2[1];
-  var sb=_useState(false),busy=sb[0],setBusy=sb[1];
-  var sok=_useState(""),ok=sok[0],setOk=sok[1];
-  var serr=_useState(""),err=serr[0],setErr=serr[1];
-  var svalid=_useState(null),valido=svalid[0],setValido=svalid[1];
-  var semail=_useState(""),email=semail[0],setEmail=semail[1];
-
-  _useEffect(function(){
-    if(!oobCode) return;
-    auth.verifyPasswordResetCode(oobCode).then(function(e){
-      setEmail(e);
-      setValido(true);
-    }).catch(function(){
-      setValido(false);
-    });
-  },[oobCode]);
-
-  function cambiar(){
-    if(!pass||pass.length<6){setErr("La contrase\u00F1a debe tener al menos 6 caracteres");return;}
-    if(pass!==pass2){setErr("Las contrase\u00F1as no coinciden");return;}
-    setBusy(true);setErr("");
-    auth.confirmPasswordReset(oobCode,pass).then(function(){
-      setOk("Contrase\u00F1a cambiada exitosamente. Ya puedes ingresar.");
-      setBusy(false);
-    }).catch(function(e){
-      setErr("Error al cambiar la contrase\u00F1a. Solicita un nuevo enlace.");
-      setBusy(false);
-    });
-  }
-
-  return React.createElement("div",{className:"login-wrap"},
-    React.createElement("div",{className:"login-card"},
-      React.createElement("div",{className:"login-logo"},
-        React.createElement("div",{style:{fontSize:40,marginBottom:8}},"\uD83C\uDF31"),
-        React.createElement("div",{className:"marca"},"Escuela de L\u00EDderes"),
-        React.createElement("div",{className:"sub"},"Coaching Empresarial")
-      ),
-      valido===null?React.createElement("div",{className:"spinner"}):
-      valido===false?React.createElement("div",null,
-        React.createElement("div",{className:"alerta alerta-error"},"Este enlace ya fue usado o ha vencido. Solicita uno nuevo desde la pantalla de ingreso."),
-        React.createElement("button",{className:"btn btn-primary",style:{width:"100%",marginTop:12},onClick:function(){window.location.href=window.location.origin+window.location.pathname.replace(/\/[^/]*$/,'/');}},"\u2190 Volver al ingreso")
-      ):
-      ok?React.createElement("div",null,
-        React.createElement("div",{className:"alerta alerta-ok"},ok),
-        React.createElement("button",{className:"btn btn-primary",style:{width:"100%",marginTop:12},onClick:function(){window.location.href=window.location.origin+window.location.pathname.replace(/\/[^/]*$/,'/');}},"\u2192 Ir al ingreso")
-      ):
-      React.createElement("div",null,
-        React.createElement("div",{style:{fontSize:14,color:"var(--gris)",marginBottom:16,textAlign:"center"}},"Nueva contrase\u00F1a para "+email),
-        err?React.createElement("div",{className:"alerta alerta-error"},err):null,
-        React.createElement("div",{className:"campo"},
-          React.createElement("label",null,"Nueva contrase\u00F1a"),
-          React.createElement("input",{type:"password",value:pass,onChange:function(e){setPass(e.target.value);},placeholder:"M\u00EDnimo 6 caracteres"})
-        ),
-        React.createElement("div",{className:"campo"},
-          React.createElement("label",null,"Confirmar contrase\u00F1a"),
-          React.createElement("input",{type:"password",value:pass2,onChange:function(e){setPass2(e.target.value);},placeholder:"Repite la contrase\u00F1a"})
-        ),
-        React.createElement("button",{className:"btn btn-primary",style:{width:"100%"},onClick:cambiar,disabled:busy},busy?"Cambiando...":"Cambiar contrase\u00F1a")
-      )
-    )
-  );
-}
-
 function RecuperarClave(){
   var sm=_useState(false),mostrar=sm[0],setMostrar=sm[1];
   var se=_useState(""),email=se[0],setEmail=se[1];
   var sok=_useState(""),ok=sok[0],setOk=sok[1];
   var serr=_useState(""),err=serr[0],setErr=serr[1];
-  var sb=_useState(false),busy=sb[0],setBusy=sb[1];
+  var sb=_useState(false),busy=sb[0],setBusy=sb[1];var sa=_useState(false),aceptado=sa[0],setAceptado=sa[1];
 
   function enviar(){
     if(!email.trim()){setErr("Escribe tu correo");return;}
     setBusy(true);setErr("");
-    var actionSettings={url:window.location.origin+window.location.pathname,handleCodeInApp:false};
-    auth.sendPasswordResetEmail(email,actionSettings).then(function(){
+    auth.sendPasswordResetEmail(email).then(function(){
       setOk("Correo enviado. Revisa tu bandeja de entrada y spam.");
       setBusy(false);
     }).catch(function(e){
@@ -325,6 +263,7 @@ function Login(p){
   function submit(e){
     e.preventDefault();setErr("");setBusy(true);
     auth.signInWithEmailAndPassword(email,pass).then(function(c){
+      try{db.collection('el_accesos').add({uid:c.user.uid,email:c.user.email,fecha:firebase.firestore.FieldValue.serverTimestamp(),userAgent:navigator.userAgent.substring(0,100)});}catch(e){}
       return db.collection("el_usuarios").doc(c.user.uid).get().then(function(s){
         if(!s.exists)throw new Error("Usuario no encontrado. Contacta al coach.");
         p.onLogin(Object.assign({uid:c.user.uid},s.data()));
@@ -346,7 +285,13 @@ function Login(p){
       React.createElement("form",{onSubmit:submit},
         React.createElement("div",{className:"campo"},React.createElement("label",null,"Correo electronico"),React.createElement("input",{type:"email",value:email,onChange:function(e){setEmail(e.target.value);},placeholder:"tucorreo@empresa.com",required:true})),
         React.createElement("div",{className:"campo"},React.createElement("label",null,"Contrasena"),React.createElement("input",{type:"password",value:pass,onChange:function(e){setPass(e.target.value);},placeholder:"........",required:true})),
-        React.createElement("button",{className:"btn btn-primary",style:{width:"100%",padding:"12px",justifyContent:"center",marginTop:8},disabled:busy},busy?"Ingresando...":"Ingresar")
+        React.createElement("div",{style:{display:"flex",alignItems:"flex-start",gap:"0.5rem",marginBottom:"0.75rem",padding:"0.6rem",background:"#FFF8F0",borderRadius:"8px",border:"1px solid #FDE68A"}},
+        React.createElement("input",{type:"checkbox",id:"terminos-el",checked:aceptado,onChange:function(e){setAceptado(e.target.checked);},style:{marginTop:"0.2rem",cursor:"pointer"}}),
+        React.createElement("label",{htmlFor:"terminos-el",style:{fontSize:"0.75rem",color:"#374151",cursor:"pointer",lineHeight:1.5}},
+          "Acepto el uso responsable de esta plataforma. La información aquí contenida es confidencial y de uso exclusivo de la entidad. Su divulgación no autorizada viola la Circular 036 de Supersolidaria."
+        )
+      ),
+      React.createElement("button",{className:"btn btn-primary",style:{width:"100%",padding:"12px",justifyContent:"center",marginTop:8},disabled:busy||!aceptado},busy?"Ingresando...":"Ingresar")
       ),
       React.createElement(RecuperarClave,null),
       React.createElement("div",{style:{marginTop:24,paddingTop:16,borderTop:"1px solid #f3f4f6",textAlign:"center"}},
@@ -605,76 +550,6 @@ function FormGrupo(p){
   );
 }
 
-function ModalMigrarUID(p){
-  var sv=_useState(""),uidViejo=sv[0],setUidViejo=sv[1];
-  var sn=_useState(""),uidNuevo=sn[0],setUidNuevo=sn[1];
-  var sb=_useState(false),busy=sb[0],setBusy=sb[1];
-  var sok=_useState(""),ok=sok[0],setOk=sok[1];
-  var serr=_useState(""),err=serr[0],setErr=serr[1];
-  var slog=_useState([]),log=slog[0],setLog=slog[1];
-
-  var colecciones=["el_respuestas","el_habitos_asignados","el_habitos_dia","el_compromisos_coach",
-    "el_sesiones_asignadas","el_obs_habito_coach","el_comentarios_coach","el_retroalimentacion",
-    "el_notas_coach","el_proxima_reunion","el_compromisos","el_habitos_dia"];
-
-  function migrar(){
-    if(!uidViejo.trim()||!uidNuevo.trim()){setErr("Ingresa ambos UIDs");return;}
-    setBusy(true);setErr("");setOk("");setLog([]);
-    var promesas=[];
-    var logs=[];
-    colecciones.forEach(function(col){
-      promesas.push(
-        db.collection(col).where("liderUid","==",uidViejo.trim()).get().then(function(snap){
-          if(snap.empty){logs.push(col+": sin documentos");return;}
-          var batch=db.batch();
-          snap.docs.forEach(function(d){batch.update(d.ref,{liderUid:uidNuevo.trim()});});
-          return batch.commit().then(function(){logs.push(col+": "+snap.size+" documentos migrados");});
-        }).catch(function(e){logs.push(col+": error - "+e.message);})
-      );
-    });
-    // Migrar documento de el_usuarios
-    promesas.push(
-      db.collection("el_usuarios").doc(uidViejo.trim()).get().then(function(d){
-        if(d.exists){
-          var data=d.data();
-          data.uid=uidNuevo.trim();
-          return db.collection("el_usuarios").doc(uidNuevo.trim()).set(data).then(function(){
-            return db.collection("el_usuarios").doc(uidViejo.trim()).delete();
-          }).then(function(){logs.push("el_usuarios: documento migrado");});
-        } else {
-          logs.push("el_usuarios: no se encontro documento con uid viejo");
-        }
-      }).catch(function(e){logs.push("el_usuarios: error - "+e.message);})
-    );
-    Promise.all(promesas).then(function(){
-      setLog(logs);
-      setOk("Migracion completada");
-      setBusy(false);
-    });
-  }
-
-  return React.createElement(Modal,{titulo:"Migrar UID de usuario",onClose:p.onClose},
-    React.createElement("div",{className:"alerta alerta-info",style:{fontSize:13}},"Usa esta herramienta cuando recreaste un usuario y necesitas mover su historial del UID viejo al nuevo."),
-    err?React.createElement("div",{className:"alerta alerta-error"},err):null,
-    ok?React.createElement("div",{className:"alerta alerta-ok"},ok):null,
-    React.createElement("div",{className:"campo"},
-      React.createElement("label",null,"UID viejo (antes de recrear)"),
-      React.createElement("input",{value:uidViejo,onChange:function(e){setUidViejo(e.target.value);},placeholder:"Pega el UID anterior del usuario"})
-    ),
-    React.createElement("div",{className:"campo"},
-      React.createElement("label",null,"UID nuevo (actual en Firebase Auth)"),
-      React.createElement("input",{value:uidNuevo,onChange:function(e){setUidNuevo(e.target.value);},placeholder:"Pega el UID actual del usuario"})
-    ),
-    React.createElement("button",{className:"btn btn-primary",onClick:migrar,disabled:busy||!uidViejo.trim()||!uidNuevo.trim()},busy?"Migrando...":"Migrar historial"),
-    log.length>0?React.createElement("div",{style:{marginTop:16,background:"var(--crema)",borderRadius:8,padding:12,fontSize:12,fontFamily:"monospace"}},
-      log.map(function(l,i){return React.createElement("div",{key:i},l);})
-    ):null,
-    React.createElement("div",{className:"modal-footer"},
-      React.createElement("button",{className:"btn btn-secondary",onClick:p.onClose},"Cerrar")
-    )
-  );
-}
-
 function PagUsuarios(){
   var r=useCol("el_usuarios"),rg=useCol("el_grupos"),re=useCol("el_empresas"),crud=useCRUD("el_usuarios");
   var sm=_useState(false),modal=sm[0],setModal=sm[1];
@@ -835,29 +710,10 @@ function FormUsuario(p){
       db.collection("el_usuarios").doc(p.inicial.id).update(getDatos()).then(function(){setAviso("Usuario actualizado correctamente.");setBusy(false);}).catch(function(e){setErr(e.message);setBusy(false);});
     } else {
       auth.createUserWithEmailAndPassword(f.correo,f.clave).then(function(cred){
-        var nuevoUid=cred.user.uid;
-        var correoUser=f.correo.trim().toLowerCase();
-        var colecciones=["el_respuestas","el_habitos_asignados","el_habitos_dia","el_compromisos_coach",
-          "el_sesiones_asignadas","el_obs_habito_coach","el_comentarios_coach","el_retroalimentacion",
-          "el_notas_coach","el_proxima_reunion","el_compromisos"];
-        return db.collection("el_usuarios").where("correo","==",correoUser).get().then(function(snap){
-          var uidViejo=null;
-          snap.docs.forEach(function(d){if(d.id!==nuevoUid) uidViejo=d.id;});
-          var promesas=[];
-          if(uidViejo){
-            colecciones.forEach(function(col){
-              promesas.push(db.collection(col).where("liderUid","==",uidViejo).get().then(function(s){
-                var batch=db.batch();s.docs.forEach(function(d){batch.update(d.ref,{liderUid:nuevoUid});});return batch.commit();
-              }).catch(function(){}));
-            });
-            promesas.push(db.collection("el_usuarios").doc(uidViejo).delete().catch(function(){}));
-          }
-          return Promise.all(promesas).then(function(){
-            return db.collection("el_usuarios").doc(nuevoUid).set(Object.assign({uid:nuevoUid,creadoEn:FSV.serverTimestamp()},getDatos()));
-          });
-        });
+        var uid=cred.user.uid;
+        return db.collection("el_usuarios").doc(uid).set(Object.assign({uid:uid,creadoEn:FSV.serverTimestamp()},getDatos()));
       }).then(function(){
-        setAviso("Usuario creado. Historial migrado correctamente.");setBusy(false);
+        setAviso("Usuario creado correctamente.");setBusy(false);
         setF({nombre:"",correo:"",rol:"lider",empresaId:"",grupoId:"",clave:"",esLider:false,gruposSupervisa:[]});
       }).catch(function(e){
         var m=e.message||"";
